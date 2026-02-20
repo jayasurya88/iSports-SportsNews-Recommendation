@@ -411,6 +411,21 @@ def process_payment(request, match_id):
         return redirect('my_tickets')
     return redirect('user_dashboard')
 
+from .pdf_utils import generate_ticket_pdf
+
+@login_required
+def ticket_download_view(request, ticket_id):
+    """
+    View to download a specific ticket as PDF.
+    """
+    try:
+        # Security check: Ensure ticket belongs to user
+        ticket = Ticket.objects.get(ticket_id=ticket_id, user=request.user)
+        return generate_ticket_pdf(request, ticket_id)
+    except Ticket.DoesNotExist:
+        messages.error(request, "Ticket not found or access denied.")
+        return redirect('my_tickets')
+
 @login_required
 def my_tickets(request):
     tickets = Ticket.objects.filter(user=request.user).select_related('match', 'match__home_team', 'match__away_team', 'match__venue').order_by('-purchase_date')
@@ -418,3 +433,42 @@ def my_tickets(request):
         'tickets': tickets
     }
     return render(request, 'my_tickets.html', context)
+
+from django.db.models import Q
+from functools import reduce
+import operator
+
+@login_required
+def fav_team_news(request):
+    """
+    View to display news and players related to the user's favorite teams.
+    """
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    favorite_teams = profile.favorite_teams.prefetch_related('players').all()
+    
+    news_articles = []
+    
+    if favorite_teams.exists():
+        # Build a complex query to find news mentioning any of the favorite teams
+        # We search in headline and summary
+        query = reduce(operator.or_, [Q(headline__icontains=team.name) | Q(summary__icontains=team.name) for team in favorite_teams])
+        
+        news_articles = NewsArticle.objects.filter(query).order_by('-id')
+    
+    context = {
+        'news_articles': news_articles,
+        'favorite_teams': favorite_teams
+    }
+    return render(request, 'fav_team_news.html', context)
+
+@login_required
+def latest_news(request):
+    """
+    View to display all latest news articles.
+    """
+    news_articles = NewsArticle.objects.all().order_by('-id')
+    
+    context = {
+        'news_articles': news_articles
+    }
+    return render(request, 'latest_news.html', context)

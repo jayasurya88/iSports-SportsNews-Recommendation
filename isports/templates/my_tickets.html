@@ -361,7 +361,19 @@
                                         <span class="badge badge-success px-2 py-1" style="background: rgba(40,167,69,0.2); color: #28a745; border: 1px solid rgba(40,167,69,0.3);">{{ ticket.status|upper }}</span>
                                     </td>
                                     <td class="align-middle text-right pr-4">
-                                        <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="viewTicket('{{ ticket.id }}', '{{ ticket.ticket_id }}', '{{ ticket.match.home_team.name|escapejs }}', '{{ ticket.match.away_team.name|escapejs }}', '{% if ticket.match.home_team.logo %}{{ ticket.match.home_team.logo.url }}{% endif %}', '{% if ticket.match.away_team.logo %}{{ ticket.match.away_team.logo.url }}{% endif %}', '{{ ticket.match.date_time|date:"M d, Y • H:i" }}', '{{ ticket.match.venue.name|escapejs }}', '{{ ticket.seat_section }}', '{{ ticket.quantity }}')">
+                                        <button class="btn btn-sm btn-outline-light rounded-pill px-3" 
+                                            data-id="{{ ticket.id }}"
+                                            data-ticket-id="{{ ticket.ticket_id }}"
+                                            data-home-team="{{ ticket.match.home_team.name|escapejs }}"
+                                            data-away-team="{{ ticket.match.away_team.name|escapejs }}"
+                                            data-home-logo="{% if ticket.match.home_team.logo %}{{ ticket.match.home_team.logo.url }}{% endif %}"
+                                            data-away-logo="{% if ticket.match.away_team.logo %}{{ ticket.match.away_team.logo.url }}{% endif %}"
+                                            data-date-time="{{ ticket.match.date_time|date:'M d, Y • H:i' }}"
+                                            data-venue="{{ ticket.match.venue.name|escapejs }}"
+                                            data-seat="{{ ticket.seat_section|escapejs }}"
+                                            data-quantity="{{ ticket.quantity }}"
+                                            data-league="{{ ticket.match.league|default:'Premier League'|escapejs }}"
+                                            onclick="viewTicket(this)">
                                             View Ticket
                                         </button>
                                     </td>
@@ -384,6 +396,9 @@
 
 <!-- Ticket Modal -->
 <div class="modal fade" id="ticketModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content" style="background: transparent; border: none;">
+            <div class="modal-body p-0">
                 <!-- Physical Ticket Design -->
                 <div class="physical-ticket" style="background: #f8f9fa; border-radius: 12px; overflow: hidden; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.5); font-family: 'Arial', sans-serif; color: #333; max-width: 800px; margin: 0 auto; display: flex;">
                     
@@ -403,10 +418,10 @@
                         <div class="ticket-header-band" style="background: #111; color: #fff; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #E4002B;">
                             <div class="d-flex align-items-center">
                                 <!-- Sponsor 1 -->
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Sports_Direct_Logo.svg/1024px-Sports_Direct_Logo.svg.png" style="height: 16px; margin-right: 15px; opacity: 0.9; background: #fff; padding: 2px; border-radius: 2px;" alt="Sponsor">
-                                <h4 class="m-0 font-weight-bold text-uppercase" id="modalHomeTeam" style="font-family: 'Arial Black', sans-serif; letter-spacing: 0.5px; font-size: 18px;">HOME TEAM</h4>
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Sports_Direct_Logo.svg/512px-Sports_Direct_Logo.svg.png" style="height: 16px; margin-right: 15px; opacity: 0.9; background: #fff; padding: 2px; border-radius: 2px;" alt="Sports Direct" onerror="this.style.display='none'">
+                                <h4 class="m-0 font-weight-bold text-uppercase" id="modalHomeTeam" style="font-family: 'Arial Black', sans-serif; letter-spacing: 0.5px; font-size: 18px; color: #ffffff !important;">HOME TEAM</h4>
                             </div>
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Wonga-logo.png/800px-Wonga-logo.png" style="height: 20px; opacity: 0.8; background: #fff; padding: 2px 5px; border-radius: 2px;" alt="Sponsor">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Wonga.com_logo.svg/512px-Wonga.com_logo.svg.png" style="height: 20px; opacity: 0.8; background: #fff; padding: 2px 5px; border-radius: 2px;" alt="Wonga" onerror="this.style.display='none'">
                         </div>
 
                         <!-- Ticket Content -->
@@ -415,7 +430,7 @@
                             <!-- Middle Content -->
                             <div style="flex: 1; padding-right: 20px;">
                                 <h3 class="font-weight-bold mb-1" id="modalAwayTeam" style="font-size: 22px; color: #000;">AWAY TEAM</h3>
-                                <div class="text-uppercase font-weight-bold text-muted mb-4" style="font-size: 12px; letter-spacing: 0.5px;">Barclays Premier League</div>
+                                <div class="text-uppercase font-weight-bold text-muted mb-4" id="modalLeague" style="font-size: 12px; letter-spacing: 0.5px;">Barclays Premier League</div>
                                 
                                 <div class="mb-4">
                                     <div class="font-weight-bold" style="font-size: 14px;">Date & Kick Off</div>
@@ -437,7 +452,7 @@
                                 <div>
                                     <!-- Crest Small -->
                                     <div class="text-center mb-3">
-                                        <img id="modalHomeLogo" src="" style="height: 50px; object-fit: contain;">
+                                        <img id="modalHomeLogo" src="" style="height: 50px; object-fit: contain;" onerror="this.style.display='none'">
                                     </div>
                                     
                                     <div class="detail-row mb-2">
@@ -476,9 +491,9 @@
                             </div>
                             <div class="d-flex align-items-center">
                                 <!-- Puma Logo -->
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Puma_AG.svg/1200px-Puma_AG.svg.png" style="height: 20px; margin-right: 15px;" alt="Puma">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Puma_Logo.svg/512px-Puma_Logo.svg.png" style="height: 20px; margin-right: 15px;" alt="Puma" onerror="this.style.display='none'">
                                 <!-- Barclays Logo -->
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Barclays_Logo.svg/2560px-Barclays_Logo.svg.png" style="height: 18px;" alt="Barclays">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Barclays_Logo.svg/512px-Barclays_Logo.svg.png" style="height: 18px;" alt="Barclays" onerror="this.style.display='none'">
                             </div>
                         </div>
                     </div>
@@ -501,13 +516,28 @@
 
 {% block extra_js %}
 <script>
-    function viewTicket(dbId, ticketId, homeName, awayName, homeLogo, awayLogo, dateTime, venue, seat, admit) {
+    function viewTicket(btn) {
+        // Read data attributes
+        const dataset = btn.dataset;
+        const dbId = dataset.id;
+        const ticketId = dataset.ticketId;
+        const homeName = dataset.homeTeam;
+        const awayName = dataset.awayTeam;
+        const homeLogo = dataset.homeLogo;
+        const awayLogo = dataset.awayLogo;
+        const dateTime = dataset.dateTime;
+        const venue = dataset.venue;
+        const seat = dataset.seat;
+        const quantity = dataset.quantity;
+        const league = dataset.league;
+
         // Update Text
         document.getElementById('modalHomeTeam').innerText = homeName;
         document.getElementById('modalAwayTeam').innerText = awayName;
         document.getElementById('modalDateTime').innerText = dateTime;
         document.getElementById('modalSeat').innerText = seat + ' Stand';
         document.getElementById('modalTicketIdSide').innerText = ticketId;
+        document.getElementById('modalLeague').innerText = league.toUpperCase();
 
         // Update Logos
         const homeImg = document.getElementById('modalHomeLogo');
@@ -516,14 +546,17 @@
         if (homeLogo) {
             homeImg.src = homeLogo;
             bgLogo.src = homeLogo;
+            homeImg.style.display = 'inline-block';
         } else {
+            // Hide if no logo
             homeImg.style.display = 'none';
         }
+
 
         // Set download button action
         const downloadBtn = document.querySelector('#ticketModal .btn-success');
         downloadBtn.onclick = function() {
-             alert('Printing Ticket #' + ticketId);
+             window.location.href = `/ticket/download/${ticketId}/`;
         };
         
         $('#ticketModal').modal('show');

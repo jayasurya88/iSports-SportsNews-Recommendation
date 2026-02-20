@@ -37,6 +37,9 @@ urlpatterns = [
     path('match/<int:match_id>/pay/', views.payment_mock_view, name='payment_mock'),
     path('match/<int:match_id>/pay/process/', views.process_payment, name='process_payment'),
     path('my-tickets/', views.my_tickets, name='my_tickets'),
+    path('ticket/download/<str:ticket_id>/', views.ticket_download_view, name='ticket_download'),
+    path('my-teams/news/', views.fav_team_news, name='fav_team_news'),
+    path('news/latest/', views.latest_news, name='latest_news'),
 ]
 
 if settings.DEBUG:

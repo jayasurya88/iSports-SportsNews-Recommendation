@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Team News - iSports{% endblock %}
+
+{% block extra_css %}
+<style>
+    .news-page {
+        padding: 120px 0 80px;
+        min-height: 100vh;
+        background: radial-gradient(circle at top center, #1a202c 0%, #0b0e11 100%);
+    }
+    
+    .news-card {
+        background: #151922;
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .news-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        border-color: rgba(255,255,255,0.1);
+    }
+    
+    .news-img-wrapper {
+        position: relative;
+        padding-top: 60%; /* Aspect Ratio */
+        overflow: hidden;
+    }
+    
+    .news-img-wrapper img {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+    
+    .news-card:hover .news-img-wrapper img {
+        transform: scale(1.05);
+    }
+    
+    .news-content {
+        padding: 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .news-meta {
+        font-size: 12px;
+        color: var(--accent-color);
+        margin-bottom: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .news-title {
+        font-family: var(--accent-font);
+        font-size: 1.25rem;
+        color: #fff;
+        margin-bottom: 15px;
+        line-height: 1.3;
+    }
+    
+    .news-title a {
+        color: #fff;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+    
+    .news-title a:hover {
+        color: var(--accent-color);
+    }
+    
+    .news-excerpt {
+        color: rgba(255,255,255,0.6);
+        font-size: 0.95rem;
+        margin-bottom: 20px;
+        line-height: 1.6;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .read-more-btn {
+        margin-top: auto;
+        color: #fff;
+        font-weight: 600;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    
+    .read-more-btn i {
+        margin-left: 8px;
+        transition: margin 0.3s;
+    }
+    
+    .read-more-btn:hover {
+        color: var(--accent-color);
+    }
+    
+    .read-more-btn:hover i {
+        margin-left: 12px;
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 60px 0;
+    }
+    
+    .empty-icon {
+        font-size: 60px;
+        color: rgba(255,255,255,0.1);
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="news-page">
+    <div class="container">
+        <!-- Header -->
+        <div class="text-center mb-5 fade-in-up">
+            <h1 class="display-4 font-weight-bold text-white mb-3" style="font-family: var(--accent-font);">My Team News</h1>
+            <p class="lead text-white-50">Latest updates from your favorite teams.</p>
+            
+            {% if favorite_teams %}
+            <div class="d-flex flex-wrap justify-content-center mt-4">
+                {% for team in favorite_teams %}
+                <span class="badge badge-dark m-1 px-3 py-2 border border-secondary" style="font-size: 14px;">
+                    {{ team.name }}
+                </span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="row">
+            {% if favorite_teams %}
+                {% if news_articles %}
+                    {% for article in news_articles %}
+                    <div class="col-lg-4 col-md-6 mb-4 fade-in-up" style="animation-delay: 0.{{ forloop.counter }}s;">
+                        <a href="{% url 'news_detail' article.id %}" class="text-decoration-none h-100">
+                        <div class="news-card">
+                            <div class="news-img-wrapper">
+                                {% if article.image_url %}
+                                <img src="{{ article.image_url }}" alt="{{ article.headline }}" onerror="this.src='{% static 'images/post-1.jpg' %}'">
+                                {% else %}
+                                <img src="{% static 'images/post-1.jpg' %}" alt="News">
+                                {% endif %}
+                            </div>
+                            <div class="news-content">
+                                <div class="news-meta">
+                                    {{ article.category }} • {{ article.published_at|default:"Just now" }}
+                                </div>
+                                <h3 class="news-title">
+                                    {{ article.headline }}
+                                </h3>
+                                <p class="news-excerpt">
+                                    {{ article.summary }}
+                                </p>
+                                <span class="read-more-btn">
+                                    Read Full Story <i class="fas fa-arrow-right"></i>
+                                </span>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="col-12 empty-state fade-in-up">
+                        <div class="empty-icon">
+                            <i class="far fa-newspaper"></i>
+                        </div>
+                        <h3 class="text-white mb-3">No specific news found</h3>
+                        <p class="text-white-50 mb-4">We couldn't find any recent articles mentioning your favorite teams directly.</p>
+                        <a href="{% url 'index' %}" class="btn btn-outline-light rounded-pill px-4">Browse All News</a>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="col-12 empty-state fade-in-up">
+                    <div class="empty-icon">
+                        <i class="fas fa-heart-broken"></i>
+                    </div>
+                    <h3 class="text-white mb-3">No Favorite Teams Selected</h3>
+                    <p class="text-white-50 mb-4">You haven't followed any teams yet. Follow teams to see their news here.</p>
+                    <a href="{% url 'manage_favorites' %}" class="btn btn-default btn-highlighted">Manage Favorites</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Players Section -->
+<div class="players-section py-5" style="background: #0b0e11;">
+    <div class="container">
+        <div class="text-center mb-5 fade-in-up">
+            <h2 class="display-4 font-weight-bold text-white mb-3" style="font-family: var(--accent-font);">Team Squads</h2>
+            <p class="lead text-white-50">Meet the stars of your favorite clubs.</p>
+        </div>
+
+        {% if favorite_teams %}
+            {% for team in favorite_teams %}
+            <div class="team-block mb-5 fade-in-up">
+                <div class="d-flex align-items-center mb-4 border-bottom border-dark pb-3">
+                    {% if team.logo %}
+                    <img src="{{ team.logo.url }}" alt="{{ team.name }}" style="height: 50px; width: 50px; object-fit: contain; margin-right: 15px;">
+                    {% endif %}
+                    <h3 class="text-white m-0" style="font-family: var(--accent-font);">{{ team.name }}</h3>
+                </div>
+
+                <div class="row">
+                    {% for player in team.players.all %}
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                        <div class="player-card text-center p-3" style="background: #151922; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s;">
+                            <div class="player-img mb-3 mx-auto" style="width: 100px; height: 100px; overflow: hidden; border-radius: 50%; border: 3px solid var(--accent-color); background: #333;">
+                                {% if player.photo_url %}
+                                <img src="{{ player.photo_url }}" alt="{{ player.name }}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png'">
+                                {% else %}
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" alt="No Image" style="width: 100%; height: 100%; object-fit: cover;">
+                                {% endif %}
+                            </div>
+                            <h5 class="text-white font-weight-bold mb-1" style="font-size: 16px;">{{ player.name }}</h5>
+                            <span class="badge badge-light px-2" style="font-size: 11px; text-transform: uppercase;">{{ player.position }}</span>
+                            <div class="mt-2 text-white-50 small">
+                                {% if player.nationality %}
+                                <i class="fas fa-flag mr-1"></i> {{ player.nationality }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <p class="text-white-50 font-italic">No players listed for this team yet.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

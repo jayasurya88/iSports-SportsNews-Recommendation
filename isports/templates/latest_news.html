@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Latest News - iSports{% endblock %}
+
+{% block extra_css %}
+<style>
+    .news-page {
+        padding: 120px 0 80px;
+        min-height: 100vh;
+        background: radial-gradient(circle at top center, #1a202c 0%, #0b0e11 100%);
+    }
+
+    .news-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+        background: #151922;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .news-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .news-img-wrapper {
+        position: relative;
+        height: 220px;
+        overflow: hidden;
+    }
+
+    .news-img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .news-card:hover .news-img-wrapper img {
+        transform: scale(1.05);
+    }
+
+    .news-content {
+        padding: 25px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .news-meta {
+        font-size: 13px;
+        color: var(--accent-color);
+        margin-bottom: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .news-title {
+        color: #fff;
+        font-size: 20px;
+        font-weight: 700;
+        line-height: 1.4;
+        margin-bottom: 15px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        font-family: var(--accent-font);
+    }
+
+    .news-excerpt {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 15px;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        flex-grow: 1;
+    }
+
+    .read-more-btn {
+        color: #fff;
+        font-weight: 600;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: auto;
+        transition: gap 0.3s;
+    }
+
+    .news-card:hover .read-more-btn {
+        gap: 12px;
+        color: var(--accent-color);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+    }
+    
+    .empty-icon {
+        font-size: 60px;
+        color: rgba(255,255,255,0.1);
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="news-page">
+    <div class="container">
+        <!-- Header -->
+        <div class="text-center mb-5 fade-in-up">
+            <h1 class="display-4 font-weight-bold text-white mb-3" style="font-family: var(--accent-font);">Latest News</h1>
+            <p class="lead text-white-50">Stay updated with the latest stories from the world of sports.</p>
+        </div>
+
+        <div class="row">
+            {% if news_articles %}
+                {% for article in news_articles %}
+                <div class="col-lg-4 col-md-6 mb-4 fade-in-up" style="animation-delay: 0.{{ forloop.counter }}s;">
+                    <a href="{% url 'news_detail' article.id %}" class="text-decoration-none h-100">
+                    <div class="news-card">
+                        <div class="news-img-wrapper">
+                            {% if article.image_url %}
+                            <img src="{{ article.image_url }}" alt="{{ article.headline }}" onerror="this.src='{% static 'images/post-1.jpg' %}'">
+                            {% else %}
+                            <img src="{% static 'images/post-1.jpg' %}" alt="News">
+                            {% endif %}
+                        </div>
+                        <div class="news-content">
+                            <div class="news-meta">
+                                <i class="far fa-clock"></i> {{ article.published_at|default:"Just now" }}
+                            </div>
+                            <h3 class="news-title">
+                                {{ article.headline }}
+                            </h3>
+                            <p class="news-excerpt">
+                                {{ article.summary }}
+                            </p>
+                            <span class="read-more-btn">
+                                Read Full Story <i class="fas fa-arrow-right"></i>
+                            </span>
+                        </div>
+                    </div>
+                    </a>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 empty-state fade-in-up">
+                    <div class="empty-icon">
+                        <i class="far fa-newspaper"></i>
+                    </div>
+                    <h3 class="text-white mb-3">No news available</h3>
+                    <p class="text-white-50 mb-4">Check back later for the latest updates.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
