@@ -72,6 +72,7 @@
         margin-bottom: 15px;
         display: -webkit-box;
         -webkit-line-clamp: 2;
+        line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
         font-family: var(--accent-font);
@@ -84,6 +85,7 @@
         margin-bottom: 20px;
         display: -webkit-box;
         -webkit-line-clamp: 3;
+        line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
         flex-grow: 1;
@@ -130,11 +132,13 @@
         <div class="row">
             {% if news_articles %}
                 {% for article in news_articles %}
-                <div class="col-lg-4 col-md-6 mb-4 fade-in-up" style="animation-delay: 0.{{ forloop.counter }}s;">
+                <div class="col-lg-4 col-md-6 mb-4 fade-in-up" style="animation-delay: {{ forloop.counter|add:forloop.counter }}00ms;">
                     <a href="{% url 'news_detail' article.id %}" class="text-decoration-none h-100">
                     <div class="news-card">
                         <div class="news-img-wrapper">
-                            {% if article.image_url %}
+                            {% if article.image_file %}
+                            <img src="{{ article.image_file.url }}" alt="{{ article.headline }}">
+                            {% elif article.image_url %}
                             <img src="{{ article.image_url }}" alt="{{ article.headline }}" onerror="this.src='{% static 'images/post-1.jpg' %}'">
                             {% else %}
                             <img src="{% static 'images/post-1.jpg' %}" alt="News">
@@ -142,7 +146,8 @@
                         </div>
                         <div class="news-content">
                             <div class="news-meta">
-                                <i class="far fa-clock"></i> {{ article.published_at|default:"Just now" }}
+                                <span class="badge rounded-pill me-2" style="background: rgba(196, 34, 33, 0.2); color: #fff; font-size: 0.75rem;">{{ article.category|default:"General" }}</span>
+                                <div><i class="far fa-clock"></i> {{ article.published_at|date:"M d, Y" }} • {{ article.published_at|time:"H:i" }}</div>
                             </div>
                             <h3 class="news-title">
                                 {{ article.headline }}

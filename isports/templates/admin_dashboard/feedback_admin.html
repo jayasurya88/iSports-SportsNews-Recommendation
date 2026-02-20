@@ -1,0 +1,121 @@
+{% extends 'admin_dashboard/base_admin.html' %}
+
+{% block title %}User Feedback - iSports Admin{% endblock %}
+{% block page_title %}USER FEEDBACK{% endblock %}
+
+{% block extra_css %}
+<style>
+    .feedback-list-card {
+        transition: all 0.3s ease;
+    }
+    .feedback-list-card:hover {
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    .rating-stars {
+        color: #ffc107;
+    }
+    .feedback-meta {
+        font-size: 13px;
+        color: var(--text-color);
+    }
+    .badge-rating {
+        background-color: rgba(196, 34, 33, 0.1);
+        color: var(--accent-color);
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="content-box">
+            <div class="box-header">
+                <h4 class="box-title">Recent Feedback Submissions</h4>
+                <div class="box-actions">
+                    <span class="badge badge-primary">{{ feedback_list|length }} Total</span>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th style="width: 200px;">Subject</th>
+                            <th>Message</th>
+                            <th style="width: 150px;">Rating</th>
+                            <th style="width: 180px;">Submitted On</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for feedback in feedback_list %}
+                        <tr class="feedback-row">
+                            <td>
+                                <strong>{{ feedback.subject }}</strong>
+                            </td>
+                            <td>
+                                <div class="feedback-message" style="max-width: 500px; white-space: normal;">
+                                    {{ feedback.message }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="rating-stars">
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter <= feedback.rating %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="ms-1 small badge rounded-pill badge-rating">{{ feedback.rating }}/5</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="feedback-meta">
+                                    <i class="far fa-clock me-1"></i> {{ feedback.created_at|date:"M d, Y" }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteFeedback{{ feedback.id }}">
+                                    <i class="fas fa-trash-alt me-1"></i> Moderate
+                                </button>
+
+                                <!-- Delete Modal -->
+                                <div class="modal fade" id="deleteFeedback{{ feedback.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered text-start">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Moderate Feedback</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Are you sure you want to remove this feedback from the system? This action is irreversible.</p>
+                                                <div class="p-3 bg-light rounded small">
+                                                    "{{ feedback.message|truncatechars:150 }}"
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <a href="{% url 'admin_feedback_delete' feedback.id %}" class="btn btn-danger">Confirm Delete</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5">
+                                <i class="fas fa-comment-slash fa-3x mb-3 text-muted"></i>
+                                <p class="text-muted">No feedback has been submitted yet.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'admin_dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}{% if article %}Edit Article{% else %}Publish Article{% endif %} - iSports CMS{% endblock %}
+{% block page_title %}{% if article %}EDIT NEWS ARTICLE{% else %}PUBLISH NEWS ARTICLE{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="content-box">
+            <div class="box-header">
+                <h4 class="box-title">Article Content Details</h4>
+                <a href="{% url 'admin_news_list' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+
+            <form method="POST" class="p-3" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Headline</label>
+                            <input type="text" name="headline" class="form-control" value="{{ article.headline|default:'' }}" required placeholder="Enter an engaging headline...">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Short Summary</label>
+                            <textarea name="summary" class="form-control" rows="3" required placeholder="A brief overview of the news article...">{{ article.summary|default:'' }}</textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Full Content</label>
+                            <textarea name="content" class="form-control" rows="12" required placeholder="Write the main story here...">{{ article.content|default:'' }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="mb-4 p-3 bg-light rounded">
+                            <label class="form-label fw-bold">MetaData & Category</label>
+                            <select name="category" class="form-select mb-3">
+                                <option value="Soccer" {% if article.category == 'Soccer' %}selected{% endif %}>Soccer</option>
+                                <option value="Cricket" {% if article.category == 'Cricket' %}selected{% endif %}>Cricket</option>
+                                <option value="Transfer News" {% if article.category == 'Transfer News' %}selected{% endif %}>Transfer News</option>
+                                <option value="Match Highlights" {% if article.category == 'Match Highlights' %}selected{% endif %}>Match Highlights</option>
+                                <option value="Opinion" {% if article.category == 'Opinion' %}selected{% endif %}>Opinion</option>
+                                <option value="Technical" {% if article.category == 'Technical' %}selected{% endif %}>Technical / System</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4 p-3 bg-light rounded">
+                            <label class="form-label fw-bold">Feature Image</label>
+                            
+                            <div class="mb-3">
+                                <small class="text-muted d-block mb-1">Option 1: Upload File</small>
+                                <input type="file" name="image_file" class="form-control form-control-sm">
+                                {% if article.image_file %}
+                                    <div class="mt-2">
+                                        <small class="text-success d-block mb-1"><i class="fas fa-check-circle"></i> Current Upload:</small>
+                                        <img src="{{ article.image_file.url }}" alt="" class="img-thumbnail" style="max-height: 100px;">
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-0">
+                                <small class="text-muted d-block mb-1">Option 2: Remote URL (Fallback)</small>
+                                <input type="url" name="image_url" class="form-control form-control-sm" value="{{ article.image_url|default:'' }}" placeholder="https://example.com/image.jpg">
+                            </div>
+                            
+                            <small class="text-muted d-block mt-2" style="font-size: 0.75rem;">Note: Uploaded file takes precedence over the URL.</small>
+                        </div>
+
+                        <div class="alert alert-info py-2" style="font-size: 0.85rem;">
+                            <i class="fas fa-info-circle me-1"></i> Articles appear immediately in the public News feed after saving.
+                        </div>
+
+                        <button type="submit" class="btn btn-highlighted w-100 py-3 mt-3">
+                            <i class="fas fa-check-circle me-2"></i> {% if article %}SAVE CHANGES{% else %}PUBLISH NOW{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

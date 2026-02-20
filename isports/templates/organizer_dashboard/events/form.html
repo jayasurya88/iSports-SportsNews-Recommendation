@@ -1,0 +1,285 @@
+{% extends 'organizer_dashboard/base_org.html' %}
+{% load static %}
+
+{% block title %}{% if match %}Edit Event{% else %}Create Event{% endif %} - iSports{% endblock %}
+{% block page_title %}{% if match %}EDIT EVENT: {{ match.home_team.name }} vs {{ match.away_team.name }}{% else %}SCHEDULE NEW EVENT{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <!-- Basic Logistics -->
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="mb-0">Core Logistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% if not match %}
+                        <!-- Home Team Section -->
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded bg-light">
+                                <label class="form-label fw-bold"><i class="fas fa-home me-2"></i>Home Side</label>
+                                <div class="mb-3">
+                                    <small class="text-muted d-block mb-1">Select Home League</small>
+                                    <select id="home-league-selector" class="form-select form-select-sm border-primary">
+                                        <option value="" selected disabled>-- Choose League --</option>
+                                        {% for league in leagues %}
+                                        <option value="{{ league }}">{{ league }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block mb-1">Select Home Team</small>
+                                    <select name="home_team" id="home_team_select" class="form-select" required disabled>
+                                        <option value="" selected disabled>Select League First</option>
+                                        {% for team in teams %}
+                                        <option value="{{ team.id }}" data-league="{{ team.league }}">{{ team.name }} - {{ team.league }} ({{ team.sport }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Away Team Section -->
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded bg-light">
+                                <label class="form-label fw-bold"><i class="fas fa-plane-arrival me-2"></i>Away Side</label>
+                                <div class="mb-3">
+                                    <small class="text-muted d-block mb-1">Select Away League</small>
+                                    <select id="away-league-selector" class="form-select form-select-sm border-primary">
+                                        <option value="" selected disabled>-- Choose League --</option>
+                                        {% for league in leagues %}
+                                        <option value="{{ league }}">{{ league }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block mb-1">Select Away Team</small>
+                                    <select name="away_team" id="away_team_select" class="form-select" required disabled>
+                                        <option value="" selected disabled>Select League First</option>
+                                        {% for team in teams %}
+                                        <option value="{{ team.id }}" data-league="{{ team.league }}">{{ team.name }} - {{ team.league }} ({{ team.sport }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Tournament / Event Category</label>
+                            <input type="text" name="league" id="event-league-name" class="form-control" placeholder="e.g. Premier League, International Friendly" required>
+                            <div class="mt-2 d-flex flex-wrap gap-2">
+                                <span class="badge bg-light text-dark border p-2 cursor-pointer category-suggest">International Friendly</span>
+                                <span class="badge bg-light text-dark border p-2 cursor-pointer category-suggest">Domestic League</span>
+                                <span class="badge bg-light text-dark border p-2 cursor-pointer category-suggest">Continental Cup</span>
+                                <span class="badge bg-light text-dark border p-2 cursor-pointer category-suggest">Exhibition Match</span>
+                            </div>
+                            <small class="text-muted">Enter the name of the competition this match belongs to.</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Venue</label>
+                            <select name="venue" class="form-select" required>
+                                {% for venue in venues %}
+                                <option value="{{ venue.id }}">{{ venue.name }} - {{ venue.city }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Date & Time</label>
+                            <input type="datetime-local" name="date_time" class="form-control" required>
+                        </div>
+                        {% else %}
+                        <div class="col-md-12 mb-2">
+                            <h6 class="fw-bold text-primary border-bottom pb-2"><i class="fas fa-broadcast-tower me-2"></i>Live Match Management</h6>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label fw-bold">Tournament / Event Category</label>
+                            <input type="text" name="league" id="event-league-name" class="form-control" value="{{ match.league }}" required>
+                            <div class="mt-2 d-flex flex-wrap gap-2">
+                                <span class="badge bg-light text-dark border p-2 cursor-pointer category-suggest">International Friendly</span>
+                                <span class="badge bg-light text-dark border p-2 cursor-pointer category-suggest">Domestic League</span>
+                                <span class="badge bg-light text-dark border p-2 cursor-pointer category-suggest">Continental Cup</span>
+                                <span class="badge bg-light text-dark border p-2 cursor-pointer category-suggest">Exhibition Match</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="scheduled" {% if match.status == 'scheduled' %}selected{% endif %}>Scheduled</option>
+                                <option value="live" {% if match.status == 'live' %}selected{% endif %}>Live</option>
+                                <option value="finished" {% if match.status == 'finished' %}selected{% endif %}>Finished</option>
+                                <option value="postponed" {% if match.status == 'postponed' %}selected{% endif %}>Postponed</option>
+                                <option value="cancelled" {% if match.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Home Score</label>
+                            <input type="number" name="home_score" class="form-control" value="{{ match.home_score }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Away Score</label>
+                            <input type="number" name="away_score" class="form-control" value="{{ match.away_score }}">
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Updates & Insights (Only for existing matches) -->
+            {% if match %}
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="mb-0">Live Updates & Content</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4" id="section-lineups">
+                        <label class="form-label fw-bold">Team Lineups</label>
+                        <textarea name="lineups" class="form-control" rows="4" placeholder="Enter lineup details (names, positions)...">{{ match.lineups }}</textarea>
+                    </div>
+                    <div class="mb-4" id="section-injuries">
+                        <label class="form-label fw-bold">Injury Report & Team News</label>
+                        <textarea name="injury_news" class="form-control" rows="3" placeholder="Latest injury updates or team changes...">{{ match.injury_news }}</textarea>
+                    </div>
+                    <div class="mb-4" id="section-insights">
+                        <label class="form-label fw-bold">Pre-Game Insights</label>
+                        <textarea name="pre_game_insights" class="form-control" rows="3" placeholder="Key tactical points or match expectations...">{{ match.pre_game_insights }}</textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Highlights URL</label>
+                            <input type="url" name="highlights_url" class="form-control" value="{{ match.highlights_url|default:'' }}" placeholder="https://youtube.com/...">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Exclusive Media (PDF/Video/Image)</label>
+                            <input type="file" name="exclusive_media" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="mb-5">
+                <button type="submit" class="btn btn-highlighted px-5 py-2">
+                    <i class="fas fa-save me-2"></i> {% if match %}Update Event Details{% else %}Schedule Event{% endif %}
+                </button>
+                <a href="{% url 'organizer_events_list' %}" class="btn btn-outline-secondary px-5 py-2 ms-2">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-4">
+        {% if match %}
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; background: #eef2f7;">
+            <div class="card-body text-center p-4">
+                <i class="fas fa-poll text-primary fs-1 mb-3"></i>
+                <h5>Interactive Polls</h5>
+                <p class="small text-muted">Engage your fans with predictions and voting.</p>
+                <a href="{% url 'organizer_polls' match.id %}" class="btn btn-primary btn-sm w-100">Manage Polls</a>
+            </div>
+        </div>
+        
+        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="mb-0">Recent Match Alerts</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush small">
+                    {% for alert in match.alerts.all|dictsortreversed:"created_at"|slice:":5" %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ alert.alert_type|capfirst }}</strong>
+                            <span class="text-muted">{{ alert.created_at|date:"H:i" }}</span>
+                        </div>
+                        <p class="mb-0">{{ alert.message }}</p>
+                    </div>
+                    {% empty %}
+                    <div class="p-4 text-center text-muted">No alerts sent for this match yet.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <h5 class="alert-heading"><i class="fas fa-info-circle me-2"></i> Scheduling Tips</h5>
+            <p class="small mb-0">Select teams and verify venue availability before scheduling. You can add lineups and interactive content after the event is created.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const homeLeagueSelector = document.getElementById('home-league-selector');
+        const awayLeagueSelector = document.getElementById('away-league-selector');
+        const homeSelect = document.getElementById('home_team_select');
+        const awaySelect = document.getElementById('away_team_select');
+        const eventLeagueInput = document.getElementById('event-league-name');
+
+        if (homeLeagueSelector && awayLeagueSelector) {
+            // Store original options
+            const originalHomeOptions = Array.from(homeSelect.options);
+            const originalAwayOptions = Array.from(awaySelect.options);
+
+            const filterOptions = (selectElement, originalOptions, selectedLeague) => {
+                selectElement.innerHTML = '';
+                selectElement.disabled = false;
+                
+                // Add default prompt
+                const prompt = document.createElement('option');
+                prompt.value = "";
+                prompt.text = "-- Select Team --";
+                prompt.disabled = true;
+                prompt.selected = true;
+                selectElement.appendChild(prompt);
+
+                originalOptions.forEach(opt => {
+                    if (opt.getAttribute('data-league') === selectedLeague) {
+                        selectElement.appendChild(opt.cloneNode(true));
+                    }
+                });
+            };
+
+            homeLeagueSelector.addEventListener('change', function() {
+                filterOptions(homeSelect, originalHomeOptions, this.value);
+                // Auto-fill event name if it's the first selection
+                if (!eventLeagueInput.value) {
+                    eventLeagueInput.value = this.value;
+                }
+            });
+
+            awayLeagueSelector.addEventListener('change', function() {
+                filterOptions(awaySelect, originalAwayOptions, this.value);
+            });
+
+            // Category Suggestion Clicks
+            document.querySelectorAll('.category-suggest').forEach(badge => {
+                badge.style.cursor = 'pointer';
+                badge.addEventListener('click', function() {
+                    eventLeagueInput.value = this.textContent;
+                });
+            });
+
+            // Validation for same team
+            homeSelect.addEventListener('change', function() {
+                if (this.value === awaySelect.value && this.value !== "") {
+                    alert("A team cannot play against itself! Please choose a different team.");
+                    this.value = "";
+                }
+            });
+
+            awaySelect.addEventListener('change', function() {
+                if (this.value === homeSelect.value && this.value !== "") {
+                    alert("A team cannot play against itself! Please choose a different team.");
+                    this.value = "";
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

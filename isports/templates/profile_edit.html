@@ -3,61 +3,208 @@
 
 {% block title %}Edit Profile - iSports{% endblock %}
 
+{% block extra_css %}
+<style>
+    .profile-page {
+        padding: 120px 0 80px;
+        min-height: 100vh;
+        background: radial-gradient(circle at top center, #1a202c 0%, #0b0e11 100%);
+    }
+
+    .profile-card {
+        background: #151922;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 30px;
+        height: 100%;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .profile-sidebar {
+        text-align: center;
+    }
+
+    .avatar-wrapper {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 20px;
+        position: relative;
+    }
+
+    .profile-avatar {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--accent-color);
+        box-shadow: 0 0 20px rgba(196, 34, 33, 0.3);
+    }
+
+    .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent-color), #8a1c1c);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        color: #fff;
+        font-weight: 700;
+        border: 4px solid rgba(255,255,255,0.1);
+    }
+
+    .user-name {
+        color: #fff;
+        font-family: var(--accent-font);
+        font-size: 24px;
+        margin-bottom: 5px;
+    }
+
+    .member-since {
+        color: rgba(255,255,255,0.5);
+        font-size: 13px;
+        margin-bottom: 30px;
+    }
+
+    .nav-pills .nav-link {
+        color: rgba(255,255,255,0.7);
+        padding: 12px 20px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        transition: all 0.3s;
+        text-align: left;
+        display: flex;
+        align-items: center;
+    }
+
+    .nav-pills .nav-link i {
+        margin-right: 12px;
+        width: 20px;
+        text-align: center;
+    }
+
+    .nav-pills .nav-link:hover, .nav-pills .nav-link.active {
+        background: rgba(196, 34, 33, 0.1);
+        color: var(--accent-color);
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        padding-bottom: 15px;
+    }
+
+    .section-title {
+        color: var(--accent-color);
+        font-family: var(--accent-font);
+        font-size: 22px;
+        margin: 0;
+    }
+
+    /* Form Styles */
+    .form-label {
+        color: rgba(255,255,255,0.7);
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+
+    .form-control, .form-select {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #fff;
+        border-radius: 10px;
+        padding: 12px 15px;
+    }
+
+    .form-control:focus {
+        background: rgba(255,255,255,0.1);
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 0.2rem rgba(196, 34, 33, 0.25);
+        color: #fff;
+    }
+
+    /* File Input Styling */
+    input[type="file"] {
+        color: rgba(255,255,255,0.5);
+    }
+    input[type="file"]::-webkit-file-upload-button {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-right: 10px;
+    }
+
+    .form-check-label {
+        color: rgba(255,255,255,0.8);
+        font-size: 14px;
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--accent-color);
+        border-color: var(--accent-color);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <!-- Hero Section with Breadcrumb style -->
-    <div class="hero dark-section" style="min-height: 400px; padding-top: 120px; padding-bottom: 60px;">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="section-title">
-                        <h3 class="wow fadeInUp">Settings</h3>
-                        <h1 class="text-anime-style-2" data-cursor="-opaque">Edit Your <span>Profile</span></h1>
-                    </div>
-                </div>
+<div class="profile-page">
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="row mb-5">
+            <div class="col-lg-12 text-center">
+                <h3 class="wow fadeInUp text-white-50">Settings</h3>
+                <h1 class="text-white display-4 font-weight-bold" style="font-family: var(--accent-font);">Edit Your <span style="color: var(--accent-color);">Profile</span></h1>
             </div>
         </div>
-    </div>
 
-    <!-- Profile Form Section -->
-    <div class="container" style="padding: 60px 0;">
         <div class="row">
+            <!-- Sidebar -->
             <div class="col-lg-3 mb-4">
-                <!-- Sidebar for User Settings -->
-                <div class="content-box" style="background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
-                    {% if request.user.profile.profile_picture %}
-                    <img src="{{ request.user.profile.profile_picture.url }}" alt="{{ request.user.username }}" style="width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 15px; object-fit: cover; display: block;">
-                    {% else %}
-                    <div class="user-avatar-placeholder" style="width: 80px; height: 80px; background: var(--accent-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #fff; margin: 0 auto 15px;">
-                        {{ request.user.username|make_list|first|upper }}
+                <div class="profile-card profile-sidebar fade-in-up">
+                    <div class="avatar-wrapper">
+                        {% if request.user.profile.profile_picture %}
+                        <img src="{{ request.user.profile.profile_picture.url }}" alt="{{ request.user.username }}" class="profile-avatar">
+                        {% else %}
+                        <div class="avatar-placeholder">
+                            {{ request.user.username|make_list|first|upper }}
+                        </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
-                    <h5 class="text-center">{{ request.user.username }}</h5>
-                    <p class="text-center text-muted small">Member since {{ request.user.date_joined|date:"M Y" }}</p>
+                    <h3 class="user-name">{{ request.user.username }}</h3>
+                    <p class="member-since">Member since {{ request.user.date_joined|date:"M Y" }}</p>
                     
-                    <hr>
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 25px 0;">
                     
-                    <ul class="nav flex-column nav-pills">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'profile_view' %}" style="color: var(--text-color);">View Profile</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'profile_edit' %}" style="color: var(--primary-color);">Edit Profile</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'user_dashboard' %}" style="color: var(--text-color);">Back to Dashboard</a>
-                        </li>
-                    </ul>
+                    <div class="nav flex-column nav-pills">
+                        <a class="nav-link" href="{% url 'profile_view' %}">
+                            <i class="fas fa-user"></i> Overview
+                        </a>
+                        <a class="nav-link active" href="{% url 'profile_edit' %}">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        <a class="nav-link" href="{% url 'latest_news' %}">
+                            <i class="fas fa-arrow-left"></i> Back to News
+                        </a>
+                    </div>
                 </div>
             </div>
 
+            <!-- Form Content -->
             <div class="col-lg-9">
-                <div class="content-box" style="background: #fff; border-radius: 10px; padding: 40px; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
+                <div class="profile-card fade-in-up" style="animation-delay: 0.1s;">
                     
                     {% if messages %}
                         {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4" role="alert" style="background: rgba(196, 34, 33, 0.1); border: 1px solid rgba(196, 34, 33, 0.2); color: #fff;">
                                 {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
                         {% endfor %}
                     {% endif %}
@@ -65,43 +212,51 @@
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
                         
-                        <h4 class="mb-4" style="color: var(--primary-color);">Personal Information</h4>
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label for="id_profile_picture" class="form-label">Profile Picture</label>
-                                {{ profile_form.profile_picture }}
-                            </div>
+                        <div class="section-header">
+                            <h4 class="section-title">Update Information</h4>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+
+                        <div class="row g-4">
+                             <div class="col-md-12 mb-2">
+                                <label for="id_profile_picture" class="form-label">Profile Picture</label>
+                                <div class="p-3 rounded" style="background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1);">
+                                     {{ profile_form.profile_picture }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
                                 <label for="id_username" class="form-label">Username</label>
+                                <!-- Apply custom class via widget tweaks in form or manual rendering if needed, but defaulting to CSS selection for now -->
                                 {{ user_form.username }}
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="id_email" class="form-label">Email Address</label>
                                 {{ user_form.email }}
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="id_first_name" class="form-label">First Name</label>
                                 {{ user_form.first_name }}
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="id_last_name" class="form-label">Last Name</label>
                                 {{ user_form.last_name }}
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="id_phone" class="form-label">Phone Number</label>
                                 {{ profile_form.phone }}
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="id_dob" class="form-label">Date of Birth</label>
                                 {{ profile_form.dob }}
                             </div>
                         </div>
 
-                        <hr class="my-4">
+                        <hr style="border-color: rgba(255,255,255,0.1); margin: 30px 0;">
 
-                        <h4 class="mb-4" style="color: var(--primary-color);">Notification Preferences</h4>
+                        <div class="section-header">
+                            <h4 class="section-title">Notification Settings</h4>
+                        </div>
+                        
                         <div class="row">
                             <div class="col-md-12 mb-3">
                                 <div class="form-check form-switch">
@@ -117,7 +272,8 @@
                             </div>
                         </div>
 
-                        <div class="mt-4">
+                        <div class="mt-4 text-end">
+                            <a href="{% url 'profile_view' %}" class="btn btn-outline-light rounded-pill px-4 mr-2">Cancel</a>
                             <button type="submit" class="btn-default btn-highlighted">Save Changes</button>
                         </div>
                     </form>
@@ -125,4 +281,20 @@
             </div>
         </div>
     </div>
+</div>
+
+<script>
+    // Helper script to add bootstrap classes to form fields rendered by Django
+    document.addEventListener("DOMContentLoaded", function() {
+        var inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="password"], input[type="date"], input[type="number"], select, textarea');
+        inputs.forEach(function(input) {
+            input.classList.add('form-control');
+        });
+        
+        var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(function(check) {
+            check.classList.add('form-check-input');
+        });
+    });
+</script>
 {% endblock %}

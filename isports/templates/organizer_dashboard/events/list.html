@@ -1,0 +1,285 @@
+{% extends 'organizer_dashboard/base_org.html' %}
+{% load static %}
+
+{% block title %}Manage Events - iSports Organizer{% endblock %}
+{% block page_title %}EVENT MANAGEMENT{% endblock %}
+
+{% block extra_css %}
+<style>
+    .event-container {
+        animation: fadeIn 0.5s ease-out;
+    }
+    
+    .search-pill {
+        background: #fff;
+        border-radius: 50px;
+        padding: 5px 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border: 1px solid #eee;
+    }
+    
+    .search-pill input {
+        border: none;
+        outline: none;
+        padding: 5px 10px;
+        width: 250px;
+        font-size: 0.9rem;
+    }
+
+    .event-table {
+        border-collapse: separate;
+        border-spacing: 0 12px;
+    }
+    
+    .event-table tr {
+        background: #fff;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        border-radius: 12px;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .event-table tr:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    }
+    
+    .event-table td {
+        border: none;
+        padding: 20px 15px;
+    }
+    
+    .event-table td:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+    .event-table td:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+
+    .status-badge {
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .status-live {
+        background: #fff5f5;
+        color: #e53e3e;
+        border: 1px solid #feb2b2;
+        position: relative;
+    }
+    
+    .status-live::before {
+        content: '';
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background: #e53e3e;
+        border-radius: 50%;
+        margin-right: 6px;
+        box-shadow: 0 0 0 rgba(229, 62, 62, 0.4);
+        animation: pulse 1.5s infinite;
+    }
+
+    .status-scheduled { background: #ebf8ff; color: #3182ce; border: 1px solid #bee3f8; }
+    .status-finished { background: #f0fff4; color: #38a169; border: 1px solid #c6f6d5; }
+    
+    .score-display {
+        background: #1a202c;
+        color: #fff;
+        padding: 5px 15px;
+        border-radius: 8px;
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.4rem;
+        letter-spacing: 2px;
+        display: inline-block;
+    }
+
+    .content-status-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        transition: all 0.3s;
+    }
+    
+    .action-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #718096;
+        background: #f7fafc;
+        transition: all 0.2s;
+        border: 1px solid #edf2f7;
+    }
+    
+    .action-btn:hover {
+        background: var(--primary-color);
+        color: #fff;
+        border-color: var(--primary-color);
+    }
+    
+    .action-btn.delete:hover {
+        background: #e53e3e;
+        border-color: #e53e3e;
+    }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(229, 62, 62, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0); }
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="event-container">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1 fw-bold">My Match Center</h4>
+            <p class="text-muted small mb-0">Manage all your scheduled matches and live event content here.</p>
+        </div>
+        
+        <div class="d-flex gap-3 align-items-center">
+            <div class="search-pill">
+                <form class="d-flex align-items-center" method="GET">
+                    <i class="fas fa-search text-muted"></i>
+                    <input type="text" name="q" placeholder="Search team, league..." value="{{ query|default:'' }}">
+                </form>
+            </div>
+            <a href="{% url 'organizer_event_create' %}" class="btn btn-highlighted px-4 py-2 shadow-sm rounded-pill">
+                <i class="fas fa-plus-circle me-2"></i> Schedule New Event
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="p-3 bg-white rounded shadow-sm border-start border-4 border-primary">
+                <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">Total Matches</small>
+                <h5 class="mb-0">{{ matches.count }}</h5>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-3 bg-white rounded shadow-sm border-start border-4 border-danger">
+                <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem;">Live Now</small>
+                <h5 class="mb-0">{% with matches|dictsortreversed:"status" as live_matches %}{{ matches.filter.count|default:0 }}{% endwith %}</h5>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-responsive">
+        <table class="table event-table align-middle">
+            <thead class="text-uppercase text-muted" style="font-size: 0.75rem;">
+                <tr>
+                    <th class="ps-4 border-0">Event Details</th>
+                    <th class="border-0 text-center">Current Score</th>
+                    <th class="border-0">Timing & Venue</th>
+                    <th class="border-0">Live Content Status</th>
+                    <th class="border-0 text-end pe-4">Manage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for match in matches %}
+                <tr>
+                    <td class="ps-4" style="min-width: 300px;">
+                        <div class="d-flex align-items-center">
+                            <div class="match-teams">
+                                <span class="status-badge {% if match.status == 'live' %}status-live{% elif match.status == 'finished' %}status-finished{% else %}status-scheduled{% endif %} mb-2 d-inline-block">
+                                    {{ match.status }}
+                                </span>
+                                <div class="fw-bold fs-5 mb-0" style="color: #2d3748;">
+                                    {{ match.home_team.name }} <span class="text-muted fs-6 mx-1">vs</span> {{ match.away_team.name }}
+                                </div>
+                                <div class="badge bg-light text-dark fw-normal mt-1 border">
+                                    <i class="fas fa-trophy me-1 text-warning"></i> {{ match.league }}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <div class="score-display">
+                            {{ match.home_score }} - {{ match.away_score }}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex flex-column">
+                            <span class="fw-bold" style="color: #4a5568;"><i class="far fa-calendar-alt me-2 text-primary"></i>{{ match.date_time|date:"D, M d, Y" }}</span>
+                            <span class="text-muted small"><i class="far fa-clock me-2"></i>{{ match.date_time|date:"H:i" }} IST</span>
+                            <span class="text-muted small mt-1"><i class="fas fa-map-marker-alt me-2"></i>{{ match.venue.name }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'organizer_event_edit' match.id %}#section-lineups" class="text-decoration-none">
+                                <div class="content-status-icon border {% if match.lineups %}bg-success text-white border-success{% else %}bg-light text-muted{% endif %}" title="Lineups">
+                                    <i class="fas fa-users-cog"></i>
+                                </div>
+                            </a>
+                            <a href="{% url 'organizer_event_edit' match.id %}#section-injuries" class="text-decoration-none">
+                                <div class="content-status-icon border {% if match.injury_news %}bg-success text-white border-success{% else %}bg-light text-muted{% endif %}" title="Injury News">
+                                    <i class="fas fa-user-injured"></i>
+                                </div>
+                            </a>
+                            <a href="{% url 'organizer_event_edit' match.id %}#section-insights" class="text-decoration-none">
+                                <div class="content-status-icon border {% if match.pre_game_insights %}bg-success text-white border-success{% else %}bg-light text-muted{% endif %}" title="Insights">
+                                    <i class="fas fa-lightbulb"></i>
+                                </div>
+                            </a>
+                            <a href="{% url 'organizer_polls' match.id %}" class="text-decoration-none">
+                                <div class="content-status-icon border {% if match.polls.exists %}bg-success text-white border-success{% else %}bg-light text-muted{% endif %}" title="Fan Polls">
+                                    <i class="fas fa-poll-h"></i>
+                                </div>
+                            </a>
+                        </div>
+                        <small class="text-muted d-block mt-2" style="font-size: 0.7rem;">
+                            Engagement: {% if match.lineups and match.polls.exists %}Active{% else %}Setup Pending{% endif %}
+                        </small>
+                    </td>
+                    <td class="text-end pe-4">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'organizer_event_edit' match.id %}" class="action-btn text-decoration-none" title="Quick Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'organizer_polls' match.id %}" class="action-btn text-decoration-none" title="Polls">
+                                <i class="fas fa-poll"></i>
+                            </a>
+                            <form action="{% url 'organizer_event_delete' match.id %}" method="POST" onsubmit="return confirm('Are you sure you want to delete this event? This action cannot be undone.');" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="action-btn delete shadow-none" title="Cancel/Delete">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="py-5 text-center bg-white rounded shadow-sm">
+                        <div class="py-4">
+                            <i class="fas fa-calendar-times fs-1 text-muted mb-3"></i>
+                            <h5>No Events Found</h5>
+                            <p class="text-muted">You haven't scheduled any matches yet.</p>
+                            <a href="{% url 'organizer_event_create' %}" class="btn btn-primary rounded-pill px-4">Create Your First Match</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+

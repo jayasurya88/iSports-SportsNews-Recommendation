@@ -218,7 +218,7 @@
 {% block content %}
 <!-- Hero Start -->
 <div class="news-hero">
-    <div class="news-hero-bg" style="background-image: url('{% if article.image_url %}{{ article.image_url }}{% else %}{% static 'images/news-placeholder.jpg' %}{% endif %}');"></div>
+    <div class="news-hero-bg" style="background-image: url('{% if article.image_file %}{{ article.image_file.url }}{% elif article.image_url %}{{ article.image_url }}{% else %}{% static 'images/news-placeholder.jpg' %}{% endif %}');"></div>
     <div class="news-hero-overlay"></div>
     
     <div class="news-hero-content">
@@ -291,7 +291,9 @@
                 {% for news in recent_news %}
                     <div class="col-md-6">
                         <a href="{% url 'news_detail' news.id %}" class="related-news-item text-decoration-none">
-                            {% if news.image_url %}
+                            {% if news.image_file %}
+                                <img src="{{ news.image_file.url }}" class="related-thumb" alt="">
+                            {% elif news.image_url %}
                                 <img src="{{ news.image_url }}" class="related-thumb" alt="">
                             {% else %}
                                 <div class="related-thumb bg-dark d-flex align-items-center justify-content-center text-white-50">

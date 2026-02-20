@@ -1,0 +1,127 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <title>{% block title %}Organizer Dashboard{% endblock %}</title>
+    <!-- Favicon Icon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/favicon.png' %}">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com/">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@200..800&display=swap" rel="stylesheet">
+    <!-- Css Libraries -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/all.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/custom.css' %}" rel="stylesheet">
+    
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --dashboard-bg: #f8f9fa;
+        }
+        body { background-color: var(--dashboard-bg); overflow-x: hidden; }
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0; height: 100vh;
+            width: var(--sidebar-width);
+            background-color: var(--primary-color);
+            color: #fff;
+            padding-top: 20px;
+            z-index: 1000;
+        }
+        .sidebar-brand {
+            padding: 0 25px 30px;
+            font-family: var(--accent-font);
+            font-size: 24px;
+            letter-spacing: 1px;
+        }
+        .sidebar-brand span { color: var(--accent-color); }
+        .nav-menu { list-style: none; padding: 0; margin: 0; }
+        .nav-item a {
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 15px;
+        }
+        .nav-item a:hover, .nav-item a.active {
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            border-left: 4px solid var(--accent-color);
+        }
+        .nav-item a i { margin-right: 15px; width: 20px; text-align: center; }
+        .main-content { margin-left: var(--sidebar-width); min-height: 100vh; }
+        .top-navbar {
+            background: #fff;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .stats-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-brand">i<span>SPORTS</span> ORG</div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="{% url 'organizer_dashboard' %}" class="{% if request.resolver_match.url_name == 'organizer_dashboard' %}active{% endif %}">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'organizer_events_list' %}" class="{% if request.resolver_match.url_name == 'organizer_events_list' %}active{% endif %}">
+                    <i class="fas fa-calendar-alt"></i> My Events
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'organizer_event_create' %}" class="{% if request.resolver_match.url_name == 'organizer_event_create' %}active{% endif %}">
+                    <i class="fas fa-plus-circle"></i> Create Event
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'profile_view' %}" class="{% if request.resolver_match.url_name == 'profile_view' %}active{% endif %}">
+                    <i class="fas fa-user-circle"></i> Profile
+                </a>
+            </li>
+            <li class="nav-item mt-5">
+                <a href="{% url 'logout' %}">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-navbar">
+            <h4 class="mb-0">{% block page_title %}Dashboard{% endblock %}</h4>
+            <div class="user-info">
+                <span>Welcome, <strong>{{ request.user.get_full_name|default:request.user.username }}</strong></span>
+            </div>
+        </div>
+
+        <div class="p-4 container-fluid">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <script src="{% static 'js/jquery-3.7.1.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

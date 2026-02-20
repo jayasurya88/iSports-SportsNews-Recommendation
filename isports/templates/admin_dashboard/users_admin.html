@@ -1,0 +1,301 @@
+{% extends 'admin_dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}Manage Users - iSports Admin{% endblock %}
+{% block page_title %}MANAGE USERS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .user-avatar-list {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background-color: var(--accent-color);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 14px;
+        margin-right: 12px;
+    }
+    .status-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .status-active {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+    }
+    .status-inactive {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+    }
+    .role-badge {
+        background-color: rgba(0, 123, 255, 0.1);
+        color: #007bff;
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+    }
+    .nav-tabs {
+        border-bottom: 2px solid #eee;
+        margin-bottom: 25px;
+    }
+    .nav-tabs .nav-link {
+        border: none;
+        color: #666;
+        font-weight: 600;
+        padding: 10px 20px;
+        text-transform: uppercase;
+        font-size: 13px;
+        font-family: var(--accent-font);
+    }
+    .nav-tabs .nav-link.active {
+        color: var(--accent-color);
+        border-bottom: 3px solid var(--accent-color);
+        background: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="content-box">
+            <div class="box-header">
+                <h4 class="box-title">System Users</h4>
+                <div class="box-actions">
+                    <button class="btn btn-sm btn-highlighted me-2" data-bs-toggle="modal" data-bs-target="#createOrganizerModal">
+                        <i class="fas fa-plus"></i> Add Organizer
+                    </button>
+                    <span class="badge bg-dark">{{ organizers|length|add:regular_users|length }} Total</span>
+                </div>
+            </div>
+
+            <!-- Custom Tabs -->
+            <ul class="nav nav-tabs" id="userTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="organizers-tab" data-bs-toggle="tab" data-bs-target="#organizers" type="button" role="tab" aria-controls="organizers" aria-selected="true">
+                        Organizers ({{ organizers|length }})
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="false">
+                        Regular Users ({{ regular_users|length }})
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="userTabsContent">
+                <!-- Organizers Tab -->
+                <div class="tab-pane fade show active" id="organizers" role="tabpanel" aria-labelledby="organizers-tab">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Joined</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in organizers %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="user-avatar-list">
+                                                {{ user.username|make_list|first|upper }}
+                                            </div>
+                                            <div>
+                                                <div class="font-weight-bold" style="color: var(--primary-color);">{{ user.username }}</div>
+                                                <small class="text-muted">{{ user.get_full_name|default:"No name set" }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        {% if user.is_active %}
+                                            <span class="status-badge status-active">Active</span>
+                                        {% else %}
+                                            <span class="status-badge status-inactive">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                                    <td class="text-end">
+                                        <div class="btn-group">
+                                            <a href="{% url 'toggle_user_status' user.id %}" class="btn btn-sm btn-outline-secondary" title="{% if user.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                                <i class="fas fa-power-off"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger ms-1" data-bs-toggle="modal" data-bs-target="#deleteModal{{ user.id }}">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No organizers found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Regular Users Tab -->
+                <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Joined</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in regular_users %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="user-avatar-list" style="background-color: #6c757d;">
+                                                {{ user.username|make_list|first|upper }}
+                                            </div>
+                                            <div>
+                                                <div class="font-weight-bold" style="color: var(--primary-color);">{{ user.username }}</div>
+                                                <small class="text-muted">{{ user.get_full_name|default:"No name set" }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        {% if user.is_active %}
+                                            <span class="status-badge status-active">Active</span>
+                                        {% else %}
+                                            <span class="status-badge status-inactive">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                                    <td class="text-end">
+                                        <div class="btn-group">
+                                            <a href="{% url 'toggle_user_status' user.id %}" class="btn btn-sm btn-outline-secondary" title="{% if user.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                                <i class="fas fa-power-off"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger ms-1" data-bs-toggle="modal" data-bs-target="#deleteModal{{ user.id }}">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No regular users found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modals for Organizers -->
+{% for user in organizers %}
+<div class="modal fade" id="deleteModal{{ user.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-start">
+                <p>Are you sure you want to delete organizer <strong>{{ user.username }}</strong>? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="{% url 'delete_user' user.id %}" class="btn btn-danger">Delete Organizer</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Delete Modals for Regular Users -->
+{% for user in regular_users %}
+<div class="modal fade" id="deleteModal{{ user.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-start">
+                <p>Are you sure you want to delete user <strong>{{ user.username }}</strong>? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="{% url 'delete_user' user.id %}" class="btn btn-danger">Delete User</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Create Organizer Modal -->
+<div class="modal fade" id="createOrganizerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form action="{% url 'create_organizer' %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Organizer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-start">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="full_name" class="form-control" placeholder="e.g. John Doe" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" name="username" class="form-control" placeholder="e.g. johndoe_org" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" placeholder="e.g. john@example.com" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Initial Password</label>
+                        <input type="text" name="password" class="form-control" value="Welcome@123" required>
+                        <small class="text-muted">The organizer will be prompted to change this on login.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-highlighted">Create Organizer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

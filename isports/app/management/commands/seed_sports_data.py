@@ -101,6 +101,53 @@ class Command(BaseCommand):
         if count > 0:
             self.stdout.write(f'    - Added {count} players')
 
+    def _fetch_news(self, league_slug, league_name):
+        """Fetch news for a specific league."""
+        self.stdout.write(f'  Fetching news for {league_name}...')
+        url = f'{ESPN_BASE}/{league_slug}/news'
+        data = self._api_get(url)
+        if not data: return
+
+        articles = data.get('articles', [])
+        count = 0
+        
+        for art in articles:
+            headline = art.get('headline', '')
+            if not headline: continue
+            
+            summary = art.get('description', '')
+            content = art.get('story', '') # Sometimes full content
+            
+            # Get images
+            images = art.get('images', [])
+            image_url = images[0].get('url', '') if images else ''
+            
+            # Get link
+            links = art.get('links', {}).get('web', {}).get('href', '')
+            
+            published_str = art.get('published', '')
+            published_dt = None
+            if published_str:
+                from django.utils.dateparse import parse_datetime
+                published_dt = parse_datetime(published_str)
+
+            # Create or update
+            NewsArticle.objects.update_or_create(
+                headline=headline[:500],
+                defaults={
+                    'summary': summary,
+                    'content': content,
+                    'image_url': image_url,
+                    'source_url': links,
+                    'published_at': published_dt,
+                    'category': league_name
+                }
+            )
+            count += 1
+            
+        if count > 0:
+            self.stdout.write(f'    -> Added {count} news articles')
+
     def handle(self, *args, **options):
         is_fresh = options.get('fresh')
         skip_logos = options.get('no_logos')
@@ -177,6 +224,9 @@ class Command(BaseCommand):
                 team_id = t.get('id')
                 if team_id:
                     self._fetch_roster(team, team_id, slug)
+
+            # 1b. Fetch News
+            self._fetch_news(slug, league_name)
 
             # 2. Fetch fixtures
             self.stdout.write(f'  Fetching fixtures...')

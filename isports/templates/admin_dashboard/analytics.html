@@ -1,0 +1,154 @@
+{% extends 'admin_dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}System Analytics - iSports Admin{% endblock %}
+{% block page_title %}SYSTEM ANALYTICS & REPORTING{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analytics-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        margin-bottom: 30px;
+    }
+    .funnel-stage {
+        padding: 15px;
+        background: #f8fafc;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+    }
+    .funnel-stage::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-top: 10px solid #e2e8f0;
+        z-index: 1;
+    }
+    .funnel-stage:last-child::after { display: none; }
+    
+    .revenue-badge {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--accent-color);
+        font-family: var(--accent-font);
+    }
+    .trend-up { color: #28a745; }
+    .trend-down { color: #dc3545; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Revenue Overview -->
+    <div class="col-lg-8">
+        <div class="analytics-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="mb-0">Revenue Performance</h5>
+                <select class="form-select form-select-sm" style="width: 150px;">
+                    <option>Last 6 Months</option>
+                    <option>Last Year</option>
+                </select>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Total Revenue</th>
+                            <th>Growth</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in revenue_data %}
+                        <tr>
+                            <td>{{ item.month|date:"F Y" }}</td>
+                            <td class="fw-bold">${{ item.total|floatformat:2 }}</td>
+                            <td>
+                                <span class="trend-up"><i class="fas fa-caret-up"></i> +12%</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-muted">No revenue data available for current period.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Popular Leagues -->
+        <div class="analytics-card">
+            <h5 class="mb-4">League Popularity (by Teams)</h5>
+            <div class="row">
+                {% for league in leagues_data %}
+                <div class="col-md-6 mb-3">
+                    <label class="d-flex justify-content-between mb-1">
+                        <span>{{ league.league }}</span>
+                        <span class="fw-bold">{{ league.count }} Teams</span>
+                    </label>
+                    <div class="progress" style="height: 10px;">
+                        {% widthratio league.count 20 100 as bar_width %}
+                        <div class="progress-bar" role="progressbar" style="width: {{ bar_width }}%; background-color: var(--accent-color);"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Conversion Funnel & Quick Stats -->
+    <div class="col-lg-4">
+        <div class="analytics-card">
+            <h5 class="mb-4">Ticket Purchase Funnel</h5>
+            <div class="funnel-container">
+                <div class="funnel-stage">
+                    <span>Page Views</span>
+                    <span class="fw-bold">{{ funnel.page_views }}</span>
+                </div>
+                <div class="funnel-stage">
+                    <span>Match Details View</span>
+                    <span class="fw-bold">{{ funnel.match_views }}</span>
+                </div>
+                <div class="funnel-stage">
+                    <span>Initiated Checkout</span>
+                    <span class="fw-bold">{{ funnel.checkout_starts }}</span>
+                </div>
+                <div class="funnel-stage" style="background: rgba(196, 34, 33, 0.1); border: 1px dashed var(--accent-color);">
+                    <span>Successful Purchases</span>
+                    <span class="fw-bold text-accent">{{ funnel.purchases }}</span>
+                </div>
+            </div>
+            <div class="mt-4 text-center">
+                <div class="p-3 bg-light rounded">
+                    <small class="text-muted d-block uppercase mb-1">Conversion Rate</small>
+                    <h3 class="mb-0">4.2%</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="analytics-card" style="background: var(--primary-color); color: #fff;">
+            <h5>System Retention</h5>
+            <div class="d-flex align-items-center mt-3">
+                <div class="display-4 fw-bold me-3">88%</div>
+                <div>
+                    <div class="trend-up"><i class="fas fa-chart-line"></i> +5.4%</div>
+                    <small style="color: rgba(255,255,255,0.6);">Higher than last month</small>
+                </div>
+            </div>
+            <hr style="background: rgba(255,255,255,0.1);">
+            <button class="btn btn-outline-light btn-sm w-100">DOWNLOAD FULL REPORT</button>
+        </div>
+    </div>
+</div>
+{% endblock %}

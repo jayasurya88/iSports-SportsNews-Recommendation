@@ -1,0 +1,98 @@
+{% extends 'admin_dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}News Management - iSports Admin{% endblock %}
+{% block page_title %}CONTENT MANAGEMENT SYSTEM (CMS){% endblock %}
+
+{% block content %}
+<div class="content-box">
+    <div class="box-header">
+        <h4 class="box-title">Published News Articles</h4>
+        <div class="box-actions">
+            <a href="{% url 'admin_news_create' %}" class="btn btn-sm btn-highlighted">
+                <i class="fas fa-plus"></i> Publish New Article
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Article Details</th>
+                    <th>Category</th>
+                    <th>Published Date</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for article in articles %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            {% if article.image_file %}
+                            <img src="{{ article.image_file.url }}" alt="" width="50" height="40" class="rounded me-3" style="object-fit: cover;">
+                            {% elif article.image_url %}
+                            <img src="{{ article.image_url }}" alt="" width="50" height="40" class="rounded me-3" style="object-fit: cover;">
+                            {% else %}
+                            <div class="bg-secondary text-white rounded me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 40px;">
+                                <i class="fas fa-image"></i>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <div class="fw-bold" style="color: var(--primary-color);">{{ article.headline|truncatechars:60 }}</div>
+                                <small class="text-muted">{{ article.summary|truncatechars:80 }}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="badge bg-light text-dark">{{ article.category }}</span></td>
+                    <td>{{ article.published_at|date:"M d, Y H:i" }}</td>
+                    <td class="text-end">
+                        <div class="btn-group">
+                            <a href="{% url 'admin_news_edit' article.id %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger ms-1" data-bs-toggle="modal" data-bs-target="#deleteArticle{{ article.id }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+
+                        <!-- Delete Modal -->
+                        <div class="modal fade" id="deleteArticle{{ article.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered text-start">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Confirm Deletion</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Are you sure you want to delete the article: <strong>{{ article.headline }}</strong>?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <a href="{% url 'admin_news_delete' article.id %}" class="btn btn-danger">Delete Permanently</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center py-4 text-muted">No articles found. Start publishing new content!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

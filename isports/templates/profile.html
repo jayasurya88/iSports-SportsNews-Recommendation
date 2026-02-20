@@ -3,174 +3,362 @@
 
 {% block title %}My Profile - iSports{% endblock %}
 
+{% block extra_css %}
+<style>
+    .profile-page {
+        padding: 120px 0 80px;
+        min-height: 100vh;
+        background: radial-gradient(circle at top center, #1a202c 0%, #0b0e11 100%);
+    }
+
+    .profile-card {
+        background: #151922;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 30px;
+        height: 100%;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .profile-sidebar {
+        text-align: center;
+    }
+
+    .avatar-wrapper {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 20px;
+        position: relative;
+    }
+
+    .profile-avatar {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--accent-color);
+        box-shadow: 0 0 20px rgba(196, 34, 33, 0.3);
+    }
+
+    .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent-color), #8a1c1c);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        color: #fff;
+        font-weight: 700;
+        border: 4px solid rgba(255,255,255,0.1);
+    }
+
+    .user-name {
+        color: #fff;
+        font-family: var(--accent-font);
+        font-size: 24px;
+        margin-bottom: 5px;
+    }
+
+    .member-since {
+        color: rgba(255,255,255,0.5);
+        font-size: 13px;
+        margin-bottom: 30px;
+    }
+
+    .nav-pills .nav-link {
+        color: rgba(255,255,255,0.7);
+        padding: 12px 20px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        transition: all 0.3s;
+        text-align: left;
+        display: flex;
+        align-items: center;
+    }
+
+    .nav-pills .nav-link i {
+        margin-right: 12px;
+        width: 20px;
+        text-align: center;
+    }
+
+    .nav-pills .nav-link:hover, .nav-pills .nav-link.active {
+        background: rgba(196, 34, 33, 0.1);
+        color: var(--accent-color);
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        padding-bottom: 15px;
+    }
+
+    .section-title {
+        color: var(--accent-color);
+        font-family: var(--accent-font);
+        font-size: 22px;
+        margin: 0;
+    }
+
+    .btn-edit {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+        padding: 8px 20px;
+        border-radius: 30px;
+        font-size: 13px;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+    .btn-edit:hover {
+        background: #fff;
+        color: #000;
+    }
+
+    .info-label {
+        color: rgba(255,255,255,0.4);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+
+    .info-value {
+        color: #fff;
+        font-size: 16px;
+        margin-bottom: 0;
+    }
+
+    .info-group {
+        background: rgba(255,255,255,0.02);
+        padding: 20px;
+        border-radius: 12px;
+        height: 100%;
+        border: 1px solid rgba(255,255,255,0.03);
+    }
+
+    .notification-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(255,255,255,0.02);
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        border: 1px solid rgba(255,255,255,0.03);
+    }
+
+    .notification-text strong {
+        display: block;
+        color: #fff;
+        margin-bottom: 4px;
+    }
+
+    .notification-text span {
+        font-size: 13px;
+        color: rgba(255,255,255,0.5);
+    }
+
+    .badge-status {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .badge-on { background: rgba(40, 167, 69, 0.2); color: #28a745; }
+    .badge-off { background: rgba(108, 117, 125, 0.2); color: #adb5bd; }
+
+    .team-item {
+        background: #1a1e26;
+        padding: 15px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        transition: transform 0.3s;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .team-item:hover {
+        transform: translateX(5px);
+        border-color: rgba(255,255,255,0.1);
+    }
+
+    .team-logo {
+        width: 40px;
+        height: 40px;
+        object-fit: contain;
+        margin-right: 15px;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    }
+
+    .league-header {
+        color: rgba(255,255,255,0.3);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin: 20px 0 10px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <!-- Hero Section with Breadcrumb style -->
-    <div class="hero dark-section" style="min-height: 400px; padding-top: 120px; padding-bottom: 60px;">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="section-title">
-                        <h3 class="wow fadeInUp">Settings</h3>
-                        <h1 class="text-anime-style-2" data-cursor="-opaque">Your <span>Profile</span></h1>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Profile View Section -->
-    <div class="container" style="padding: 60px 0;">
+<div class="profile-page">
+    <div class="container">
         <div class="row">
+            <!-- Sidebar -->
             <div class="col-lg-3 mb-4">
-                <!-- Sidebar for User Settings -->
-                <div class="content-box" style="background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
-                    {% if request.user.profile.profile_picture %}
-                    <img src="{{ request.user.profile.profile_picture.url }}" alt="{{ request.user.username }}" style="width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 15px; object-fit: cover; display: block;">
-                    {% else %}
-                    <div class="user-avatar-placeholder" style="width: 80px; height: 80px; background: var(--accent-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #fff; margin: 0 auto 15px;">
-                        {{ request.user.username|make_list|first|upper }}
+                <div class="profile-card profile-sidebar fade-in-up">
+                    <div class="avatar-wrapper">
+                        {% if request.user.profile.profile_picture %}
+                        <img src="{{ request.user.profile.profile_picture.url }}" alt="{{ request.user.username }}" class="profile-avatar">
+                        {% else %}
+                        <div class="avatar-placeholder">
+                            {{ request.user.username|make_list|first|upper }}
+                        </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
-                    <h5 class="text-center">{{ request.user.username }}</h5>
-                    <p class="text-center text-muted small">Member since {{ request.user.date_joined|date:"M Y" }}</p>
+                    <h3 class="user-name">{{ request.user.username }}</h3>
+                    <p class="member-since">Member since {{ request.user.date_joined|date:"M Y" }}</p>
                     
-                    <hr>
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 25px 0;">
                     
-                    <ul class="nav flex-column nav-pills">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'profile_view' %}" style="color: var(--primary-color);">View Profile</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'profile_edit' %}" style="color: var(--text-color);">Edit Profile</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'user_dashboard' %}" style="color: var(--text-color);">Back to Dashboard</a>
-                        </li>
-                    </ul>
+                    <div class="nav flex-column nav-pills">
+                        <a class="nav-link active" href="{% url 'profile_view' %}">
+                            <i class="fas fa-user"></i> Overview
+                        </a>
+                        <a class="nav-link" href="{% url 'profile_edit' %}">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        <a class="nav-link" href="{% url 'latest_news' %}">
+                            <i class="fas fa-arrow-left"></i> Back to News
+                        </a>
+                    </div>
                 </div>
             </div>
 
+            <!-- Main Content -->
             <div class="col-lg-9">
-                <div class="content-box" style="background: #fff; border-radius: 10px; padding: 40px; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
+                <div class="profile-card fade-in-up" style="animation-delay: 0.1s;">
                     
                     {% if messages %}
                         {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4" role="alert" style="background: rgba(196, 34, 33, 0.1); border: 1px solid rgba(196, 34, 33, 0.2); color: #fff;">
                                 {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
                         {% endfor %}
                     {% endif %}
 
-                    <div class="row mb-4 align-items-center">
-                        <div class="col-md-8">
-                             <h4 class="mb-0" style="color: var(--primary-color);">Personal Information</h4>
-                        </div>
-                        <div class="col-md-4 text-md-end">
-                            <a href="{% url 'profile_edit' %}" class="btn-default btn-small">Edit Profile</a>
-                        </div>
+                    <!-- Personal Info -->
+                    <div class="section-header">
+                        <h4 class="section-title">Personal Information</h4>
+                        <a href="{% url 'profile_edit' %}" class="btn-edit"><i class="fas fa-pen mr-2"></i> Edit</a>
                     </div>
                    
-                    <div class="row">
-                        <div class="col-md-6 mb-4">
-                            <div class="profile-info-item">
-                                <label class="text-muted small text-uppercase fw-bold">Username</label>
-                                <p class="lead">{{ request.user.username }}</p>
+                    <div class="row g-3 mb-5">
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <div class="info-label">Username</div>
+                                <p class="info-value">{{ request.user.username }}</p>
                             </div>
                         </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="profile-info-item">
-                                <label class="text-muted small text-uppercase fw-bold">Email Address</label>
-                                <p class="lead">{{ request.user.email }}</p>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <div class="info-label">Email Address</div>
+                                <p class="info-value">{{ request.user.email }}</p>
                             </div>
                         </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="profile-info-item">
-                                <label class="text-muted small text-uppercase fw-bold">First Name</label>
-                                <p class="lead">{{ request.user.first_name|default:"-" }}</p>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <div class="info-label">Full Name</div>
+                                <p class="info-value">
+                                    {% if request.user.first_name %}
+                                        {{ request.user.first_name }} {{ request.user.last_name }}
+                                    {% else %}
+                                        <span class="text-white-50 font-italic">Not set</span>
+                                    {% endif %}
+                                </p>
                             </div>
                         </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="profile-info-item">
-                                <label class="text-muted small text-uppercase fw-bold">Last Name</label>
-                                <p class="lead">{{ request.user.last_name|default:"-" }}</p>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="profile-info-item">
-                                <label class="text-muted small text-uppercase fw-bold">Phone Number</label>
-                                <p class="lead">{{ request.user.profile.phone|default:"-" }}</p>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="profile-info-item">
-                                <label class="text-muted small text-uppercase fw-bold">Date of Birth</label>
-                                <p class="lead">{{ request.user.profile.dob|default:"-" }}</p>
+                        <div class="col-md-6">
+                            <div class="info-group">
+                                <div class="info-label">Phone & DOB</div>
+                                <p class="info-value">
+                                    {{ request.user.profile.phone|default:"-" }} <span class="mx-2 text-white-50">|</span> {{ request.user.profile.dob|default:"-" }}
+                                </p>
                             </div>
                         </div>
                     </div>
 
-                    <hr class="my-4">
-
-                    <h4 class="mb-4" style="color: var(--primary-color);">Notification Preferences</h4>
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
-                            <div class="profile-info-item display-flex align-items-center">
+                    <!-- Notifications -->
+                    <div class="section-header">
+                        <h4 class="section-title">Notifications</h4>
+                    </div>
+                    <div class="row mb-5">
+                        <div class="col-md-12">
+                            <div class="notification-item">
+                                <div class="notification-text">
+                                    <strong>Email Notifications</strong>
+                                    <span>Receive news, updates, and ticket confirmations via email.</span>
+                                </div>
                                 {% if request.user.profile.email_notifications %}
-                                    <span class="badge bg-success me-2">ON</span>
+                                    <span class="badge-status badge-on">ENABLED</span>
                                 {% else %}
-                                    <span class="badge bg-secondary me-2">OFF</span>
+                                    <span class="badge-status badge-off">DISABLED</span>
                                 {% endif %}
-                                <span class="align-middle"><strong>Email Notifications</strong> (News, Updates, Ticket confirmations)</span>
                             </div>
-                        </div>
-                         <div class="col-md-12 mb-3">
-                            <div class="profile-info-item display-flex align-items-center">
+                            <div class="notification-item">
+                                <div class="notification-text">
+                                    <strong>SMS Notifications</strong>
+                                    <span>Get instant match alerts and critical updates on your phone.</span>
+                                </div>
                                 {% if request.user.profile.sms_notifications %}
-                                    <span class="badge bg-success me-2">ON</span>
+                                    <span class="badge-status badge-on">ENABLED</span>
                                 {% else %}
-                                    <span class="badge bg-secondary me-2">OFF</span>
+                                    <span class="badge-status badge-off">DISABLED</span>
                                 {% endif %}
-                                <span class="align-middle"><strong>SMS Notifications</strong> (Match alerts, critical updates)</span>
                             </div>
                         </div>
                     </div>
 
-                    <hr class="my-4">
-
-                    <div class="row mb-4 align-items-center">
-                        <div class="col-md-8">
-                             <h4 class="mb-0" style="color: var(--primary-color);">Favorite Teams</h4>
-                        </div>
-                        <div class="col-md-4 text-md-end">
-                            <a href="{% url 'manage_favorites' %}" class="btn-default btn-small">Manage</a>
-                        </div>
+                    <!-- Favorites -->
+                    <div class="section-header">
+                        <h4 class="section-title">My Teams</h4>
+                        <a href="{% url 'manage_favorites' %}" class="btn-edit">Manage</a>
                     </div>
                     
                     {% if favorites_by_league %}
-                        {% for league, teams in favorites_by_league.items %}
-                        <h6 class="mb-3 mt-3 text-muted" style="text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px;">{{ league }}</h6>
                         <div class="row">
+                        {% for league, teams in favorites_by_league.items %}
+                            <div class="col-12"><h6 class="league-header">{{ league }}</h6></div>
                             {% for team in teams %}
-                            <div class="col-md-4 mb-3">
-                                <div class="team-card" style="background: rgba(0,0,0,0.03); padding: 15px; border-radius: 10px; display: flex; align-items: center; border: 1px solid #eee;">
+                            <div class="col-md-4 col-sm-6">
+                                <div class="team-item">
                                     {% if team.logo %}
-                                    <img src="{{ team.logo.url }}" alt="{{ team.name }}" style="height: 40px; width: 40px; object-fit: contain; margin-right: 15px;">
+                                    <img src="{{ team.logo.url }}" alt="{{ team.name }}" class="team-logo">
                                     {% else %}
-                                    <div style="height: 40px; width: 40px; background: #333; border-radius: 5px; margin-right: 15px;"></div>
+                                    <div class="team-logo" style="background: #333; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">{{ team.name|slice:":1" }}</div>
                                     {% endif %}
                                     <div>
-                                        <strong style="color: #333; display: block; line-height: 1.2;">{{ team.name }}</strong>
+                                        <strong style="color: #fff; font-size: 14px;">{{ team.name }}</strong>
                                     </div>
                                 </div>
                             </div>
                             {% endfor %}
-                        </div>
                         {% endfor %}
+                        </div>
                     {% else %}
-                    <div class="text-center py-4 bg-light rounded">
-                        <p class="text-muted mb-2">You haven't followed any teams yet.</p>
-                        <a href="{% url 'manage_favorites' %}" class="btn-link">Find Teams to Follow</a>
+                    <div class="text-center py-5" style="background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1);">
+                        <i class="fas fa-heart-broken text-white-50 mb-3" style="font-size: 30px;"></i>
+                        <p class="text-white-50 mb-3">You haven't followed any teams yet.</p>
+                        <a href="{% url 'manage_favorites' %}" class="btn btn-outline-light btn-sm rounded-pill px-4">Find Teams</a>
                     </div>
                     {% endif %}
 
@@ -178,4 +366,5 @@
             </div>
         </div>
     </div>
+</div>
 {% endblock %}

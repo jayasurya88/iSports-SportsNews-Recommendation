@@ -1,0 +1,109 @@
+{% extends 'organizer_dashboard/base_org.html' %}
+
+{% block title %}Organizer Overview - iSports{% endblock %}
+{% block page_title %}SYSTEM OVERVIEW{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <h6 class="text-muted mb-2">Total Managed Events</h6>
+            <h2 class="mb-0">{{ total_events }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card" style="border-bottom-color: #ffc107;">
+            <h6 class="text-muted mb-2">Live Now</h6>
+            <h2 class="mb-0">{{ live_events }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card" style="border-bottom-color: #28a745;">
+            <h6 class="text-muted mb-2">Upcoming</h6>
+            <h2 class="mb-0">{{ upcoming_events }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card" style="border-bottom-color: #17a2b8;">
+            <h6 class="text-muted mb-2">Estimated Revenue</h6>
+            <h2 class="mb-0">${{ total_revenue }}</h2>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="mb-0">Recent Activity / Events</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">Match / Event</th>
+                                <th>Date & Time</th>
+                                <th>Venue</th>
+                                <th class="text-end pe-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for match in recent_events %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold">{{ match.home_team.name }} vs {{ match.away_team.name }}</div>
+                                    <small class="text-muted">{{ match.league }}</small>
+                                </td>
+                                <td>{{ match.date_time|date:"M d, Y" }}<br><small>{{ match.date_time|time:"H:i" }}</small></td>
+                                <td>{{ match.venue.name }}</td>
+                                <td class="text-end pe-4">
+                                    <span class="badge {% if match.status == 'live' %}bg-danger{% elif match.status == 'finished' %}bg-success{% else %}bg-primary{% endif %}">
+                                        {{ match.status|upper }}
+                                    </span>
+                                    <a href="{% url 'organizer_event_edit' match.id %}" class="btn btn-sm btn-outline-secondary ms-2"><i class="fas fa-edit"></i></a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5">
+                                    <div class="text-muted">
+                                        <i class="fas fa-calendar-times mb-3 fs-3"></i>
+                                        <p>You haven't created any events yet.</p>
+                                        <a href="{% url 'organizer_event_create' %}" class="btn btn-sm btn-highlighted mt-2">Create Your First Event</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="mb-0">Quick Management</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-3">
+                    <a href="{% url 'organizer_event_create' %}" class="btn btn-light text-start py-3 px-4 shadow-none" style="border-radius: 8px;">
+                        <i class="fas fa-calendar-plus me-3 text-danger"></i> Schedule New Match
+                    </a>
+                    <a href="{% url 'organizer_events_list' %}" class="btn btn-light text-start py-3 px-4 shadow-none" style="border-radius: 8px;">
+                        <i class="fas fa-bullhorn me-3 text-warning"></i> Post Live Updates
+                    </a>
+                    <a href="{% url 'organizer_events_list' %}" class="btn btn-light text-start py-3 px-4 shadow-none" style="border-radius: 8px;">
+                        <i class="fas fa-poll me-3 text-primary"></i> Create Interactive Polls
+                    </a>
+                    <a href="#" class="btn btn-light text-start py-3 px-4 shadow-none disabled" style="border-radius: 8px;">
+                        <i class="fas fa-users me-3 text-success"></i> Manage Community
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

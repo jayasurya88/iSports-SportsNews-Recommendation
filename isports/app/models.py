@@ -40,6 +40,7 @@ class Match(models.Model):
         ('live', 'Live'),
         ('finished', 'Finished'),
         ('postponed', 'Postponed'),
+        ('cancelled', 'Cancelled'),
     )
     home_team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='home_matches')
     away_team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='away_matches')
@@ -50,11 +51,52 @@ class Match(models.Model):
     home_score = models.IntegerField(default=0)
     away_score = models.IntegerField(default=0)
     
+    # Event Management Fields
+    organizer = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='organized_matches')
+    lineups = models.TextField(blank=True, help_text="Lineup details")
+    injury_news = models.TextField(blank=True)
+    pre_game_insights = models.TextField(blank=True)
+    highlights_url = models.URLField(blank=True, null=True)
+    exclusive_media = models.FileField(upload_to='match_media/', blank=True, null=True)
+    
     class Meta:
         verbose_name_plural = "Matches"
 
     def __str__(self):
         return f"{self.home_team} vs {self.away_team} at {self.date_time}"
+
+class CommunityGroup(models.Model):
+    name = models.CharField(max_length=200)
+    description = models.TextField()
+    team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='fan_groups', null=True, blank=True)
+    league = models.CharField(max_length=100, blank=True)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_communities')
+    members = models.ManyToManyField(User, related_name='joined_communities')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+class Poll(models.Model):
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='polls')
+    question = models.CharField(max_length=300)
+    option_a = models.CharField(max_length=100)
+    option_b = models.CharField(max_length=100)
+    votes_a = models.IntegerField(default=0)
+    votes_b = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.question
+
+class Alert(models.Model):
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='alerts')
+    message = models.TextField()
+    alert_type = models.CharField(max_length=50) # 'modification', 'cancellation', 'live_update'
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.alert_type} - {self.match}"
 
 class Ticket(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tickets')
@@ -75,6 +117,16 @@ class UserProfile(models.Model):
     dob = models.DateField(blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
     
+    # Roles: 'admin', 'organizer', 'user'
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('organizer', 'Organizer'),
+        ('user', 'User'),
+    ]
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='user')
+    needs_password_change = models.BooleanField(default=False)
+    view_password = models.CharField(max_length=128, blank=True, null=True) # For admin visibility (Dev only)
+    
     # Preference Engine Data
     favorite_teams = models.ManyToManyField(Team, blank=True, related_name='fans')
     
@@ -90,9 +142,20 @@ class NewsArticle(models.Model):
     summary = models.TextField(blank=True)
     content = models.TextField(blank=True)
     image_url = models.URLField(max_length=1000, blank=True, null=True)
-    source_url = models.URLField(max_length=1000)
-    published_at = models.CharField(max_length=100, blank=True)
+    image_file = models.ImageField(upload_to='news_articles/', blank=True, null=True)
+    source_url = models.URLField(max_length=1000, blank=True)
+    published_at = models.DateTimeField(null=True, blank=True)
     category = models.CharField(max_length=100, default='Soccer')
 
     def __str__(self):
         return self.headline
+
+class Feedback(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    subject = models.CharField(max_length=200)
+    message = models.TextField()
+    rating = models.IntegerField(default=5)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Feedback from {self.user.username if self.user else 'Anonymous'} - {self.subject}"

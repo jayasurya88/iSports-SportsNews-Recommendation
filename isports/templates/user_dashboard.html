@@ -513,7 +513,9 @@
                 {% for article in news_articles %}
                 <a href="{% url 'news_detail' article.id %}" class="text-decoration-none">
                     <div class="news-card-mini">
-                        {% if article.image_url %}
+                        {% if article.image_file %}
+                            <img src="{{ article.image_file.url }}" class="news-thumb">
+                        {% elif article.image_url %}
                             <img src="{{ article.image_url }}" class="news-thumb">
                         {% endif %}
                         <div class="news-content">
