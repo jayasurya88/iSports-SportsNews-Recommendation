@@ -1,0 +1,321 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ article.headline }} - iSports News{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .news-hero {
+        position: relative;
+        height: 60vh;
+        min-height: 500px;
+        background-color: #0b0e11;
+        overflow: hidden;
+        margin-top: 80px;
+    }
+
+    body {
+        background-color: #0b0e11;
+    }
+
+    .news-hero-bg {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-size: cover;
+        background-position: center;
+        filter: brightness(0.4);
+        z-index: 0;
+    }
+
+    .news-hero-overlay {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: linear-gradient(to bottom, rgba(11, 14, 17, 0.3) 0%, rgba(11, 14, 17, 1) 100%);
+        z-index: 2;
+    }
+
+    .news-hero-content {
+        position: absolute;
+        bottom: 0; left: 0;
+        width: 100%;
+        padding-bottom: 80px;
+        z-index: 3;
+    }
+
+    /* Typography */
+    .article-category {
+        font-family: var(--accent-font);
+        color: var(--accent-color);
+        font-size: 1.2rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 15px;
+        display: inline-block;
+        background: rgba(196, 34, 33, 0.1);
+        padding: 5px 15px;
+        border-radius: 4px;
+        border: 1px solid rgba(196, 34, 33, 0.3);
+    }
+
+    .article-headline {
+        font-size: 3.5rem;
+        font-weight: 700;
+        line-height: 1.1;
+        color: #fff;
+        margin-bottom: 25px;
+        text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .article-meta {
+        display: flex;
+        align-items: center;
+        color: rgba(255,255,255,0.7);
+        font-size: 0.95rem;
+        gap: 20px;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .meta-item i {
+        color: var(--accent-color);
+    }
+
+    /* Content Area */
+    .article-body {
+        font-size: 1.15rem;
+        line-height: 1.8;
+        color: rgba(255,255,255,0.9);
+    }
+
+    .article-lead {
+        font-size: 1.4rem;
+        font-weight: 500;
+        color: #fff;
+        margin-bottom: 40px;
+        border-left: 4px solid var(--accent-color);
+        padding-left: 20px;
+        line-height: 1.6;
+    }
+
+    .article-body p {
+        margin-bottom: 25px;
+    }
+
+    /* Sidebar */
+    .sidebar-widget {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+
+    .widget-title {
+        font-family: var(--accent-font);
+        font-size: 1.5rem;
+        color: #fff;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        position: relative;
+    }
+
+    .widget-title::after {
+        content: '';
+        position: absolute;
+        bottom: -1px; left: 0;
+        width: 50px;
+        height: 2px;
+        background: var(--accent-color);
+    }
+
+    .related-news-item {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        transition: transform 0.2s;
+    }
+
+    .related-news-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .related-news-item:hover {
+        transform: translateX(5px);
+    }
+
+    .related-thumb {
+        width: 90px;
+        height: 70px;
+        border-radius: 8px;
+        object-fit: cover;
+    }
+
+    .related-content h5 {
+        font-size: 1rem;
+        color: #e0e0e0;
+        line-height: 1.4;
+        margin-bottom: 5px;
+    }
+
+    .related-meta {
+        font-size: 0.8rem;
+        color: rgba(255,255,255,0.4);
+    }
+
+    /* Buttons & Links */
+    .btn-share {
+        width: 40px; height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        background: rgba(255,255,255,0.1);
+        transition: all 0.3s;
+        text-decoration: none;
+    }
+
+    .btn-share:hover {
+        background: var(--accent-color);
+        color: #fff;
+        transform: translateY(-3px);
+    }
+
+    .source-link {
+        color: var(--accent-color);
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+    }
+
+    .source-link:hover {
+        color: #fff;
+        gap: 12px;
+    }
+    
+    @media (max-width: 991px) {
+        .article-headline { font-size: 2.5rem; }
+        .news-hero { height: 50vh; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Start -->
+<div class="news-hero">
+    <div class="news-hero-bg" style="background-image: url('{% if article.image_url %}{{ article.image_url }}{% else %}{% static 'images/news-placeholder.jpg' %}{% endif %}');"></div>
+    <div class="news-hero-overlay"></div>
+    
+    <div class="news-hero-content">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-10 offset-lg-1">
+                    <div class="fade-in-up">
+                        <span class="article-category">{{ article.category }}</span>
+                        <h1 class="article-headline">{{ article.headline }}</h1>
+                        
+                        <div class="article-meta">
+                            <div class="meta-item">
+                                <i class="far fa-user"></i>
+                                <span>iSports Editorial</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="far fa-calendar-alt"></i>
+                                <span>{{ article.published_at }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="far fa-clock"></i>
+                                <span>5 min read</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8 offset-lg-2 mb-5">
+            <div class="article-body">
+                {% if article.summary %}
+                    <p class="article-lead">{{ article.summary }}</p>
+                {% endif %}
+                
+                <div class="content-text">
+                    {{ article.content|linebreaks }}
+                </div>
+                
+                <div class="mt-5 pt-4 border-top border-secondary">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="text-white-50 small text-uppercase font-weight-bold">Share:</span>
+                            <a href="#" class="btn-share"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="btn-share"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="btn-share"><i class="fab fa-whatsapp"></i></a>
+                        </div>
+                        
+                        {% if article.source_url %}
+                            <a href="{{ article.source_url }}" target="_blank" class="source-link">
+                                Read Original Source <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar / Related News -->
+        <div class="col-lg-8 offset-lg-2">
+            <div class="sidebar-widget">
+                <h3 class="widget-title">Related News</h3>
+                
+                <div class="row">
+                {% for news in recent_news %}
+                    <div class="col-md-6">
+                        <a href="{% url 'news_detail' news.id %}" class="related-news-item text-decoration-none">
+                            {% if news.image_url %}
+                                <img src="{{ news.image_url }}" class="related-thumb" alt="">
+                            {% else %}
+                                <div class="related-thumb bg-dark d-flex align-items-center justify-content-center text-white-50">
+                                    <i class="fas fa-newspaper"></i>
+                                </div>
+                            {% endif %}
+                            <div class="related-content">
+                                <h5 class="text-truncate-2">{{ news.headline }}</h5>
+                                <div class="related-meta">{{ news.published_at }}</div>
+                            </div>
+                        </a>
+                    </div>
+                {% empty %}
+                    <div class="col-12 text-center py-4 text-white-50">
+                        No related news articles found.
+                    </div>
+                {% endfor %}
+                </div>
+                
+                <div class="text-center mt-4 pt-3 border-top border-secondary">
+                    <a href="{% url 'user_dashboard' %}" class="btn-outline-glow d-inline-block w-auto px-5">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

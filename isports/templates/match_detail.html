@@ -1,0 +1,527 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Match Details - {{ match.home_team.name }} vs {{ match.away_team.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --card-bg: rgba(255, 255, 255, 0.03);
+        --card-border: rgba(255, 255, 255, 0.1);
+        --glow-color: rgba(196, 34, 33, 0.5); /* Based on accent color */
+    }
+
+    body {
+        background-color: #020d14; /* Slightly darker than primary for contrast */
+    }
+
+    /* Hero Section */
+    .match-hero {
+        position: relative;
+        background: radial-gradient(circle at top center, #1a1a1a 0%, var(--primary-color) 100%);
+        padding: 140px 0 80px;
+        overflow: hidden;
+        border-bottom: 1px solid var(--card-border);
+    }
+
+    .match-hero::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: 
+            linear-gradient(45deg, transparent 48%, var(--card-border) 50%, transparent 52%),
+            linear-gradient(-45deg, transparent 48%, var(--card-border) 50%, transparent 52%);
+        background-size: 60px 60px;
+        opacity: 0.03;
+        pointer-events: none;
+    }
+
+    .match-hero::after {
+        content: '';
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        height: 80%;
+        background: radial-gradient(circle, var(--glow-color) 0%, transparent 60%);
+        filter: blur(80px);
+        opacity: 0.15;
+        z-index: 0;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Team & Score Board */
+    .match-scoreboard {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 40px;
+        margin-bottom: 40px;
+    }
+
+    .team-display {
+        text-align: center;
+        flex: 1;
+        max-width: 300px;
+        transition: transform 0.3s ease;
+    }
+
+    .team-display:hover {
+        transform: translateY(-5px);
+    }
+
+    .team-logo-wrapper {
+        width: 160px;
+        height: 160px;
+        margin: 0 auto 25px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--card-border);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        position: relative;
+    }
+    
+    .team-logo-wrapper::after {
+        content: '';
+        position: absolute;
+        inset: -5px;
+        border-radius: 50%;
+        background: linear-gradient(180deg, var(--accent-color), transparent);
+        opacity: 0.3;
+        z-index: -1;
+    }
+
+    .team-logo-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 5px 15px rgba(0,0,0,0.4));
+    }
+
+    .team-name {
+        font-family: var(--accent-font);
+        font-size: 36px;
+        color: #fff;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        line-height: 1;
+        margin-bottom: 5px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .team-label {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .score-container {
+        text-align: center;
+        min-width: 200px;
+    }
+
+    .match-score {
+        font-family: var(--accent-font);
+        font-size: 8rem;
+        line-height: 0.9;
+        color: #fff;
+        text-shadow: 0 0 30px rgba(255,255,255,0.2);
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .vs-badge {
+        font-family: var(--accent-font);
+        font-size: 48px;
+        color: var(--text-color);
+        opacity: 0.5;
+    }
+    
+    .match-time-hero {
+        font-size: 32px;
+        color: #fff;
+        font-family: var(--accent-font);
+        letter-spacing: 1px;
+    }
+
+    .match-status-badge {
+        display: inline-block;
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+        backdrop-filter: blur(5px);
+    }
+
+    .status-live {
+        background: rgba(220, 53, 69, 0.2);
+        color: #ff4d4d;
+        border: 1px solid rgba(220, 53, 69, 0.4);
+        box-shadow: 0 0 20px rgba(220, 53, 69, 0.2);
+        animation: pulse-red 2s infinite;
+    }
+
+    .status-scheduled {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--accent-color);
+        border: 1px solid var(--card-border);
+    }
+
+    .status-finished {
+         background: rgba(40, 167, 69, 0.2);
+         color: #28a745;
+         border: 1px solid rgba(40, 167, 69, 0.4);
+    }
+
+    /* Cards & Layout */
+    .glass-card {
+        background: #0f1214;
+        border: 1px solid var(--card-border);
+        border-radius: 24px;
+        padding: 30px;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 30px;
+    }
+
+    .glass-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        border-bottom: 1px solid var(--card-border);
+        padding-bottom: 15px;
+    }
+
+    .glass-card-title {
+        font-family: var(--accent-font);
+        font-size: 24px;
+        color: #fff;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .glass-card-title::before {
+        content: '';
+        display: block;
+        width: 4px;
+        height: 24px;
+        background: var(--accent-color);
+        border-radius: 2px;
+    }
+
+    /* Info Items */
+    .info-list-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .info-list-item:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .info-value {
+        color: #fff;
+        font-weight: 600;
+        text-align: right;
+    }
+
+    /* Recent Results */
+    .recent-result-item {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 12px;
+        padding: 12px 16px;
+        margin-bottom: 10px;
+        border: 1px solid transparent;
+        transition: all 0.2s;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .recent-result-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: var(--card-border);
+    }
+
+    .recent-match-teams {
+        font-size: 14px;
+        color: #ccc;
+    }
+
+    .recent-match-score {
+        font-family: var(--accent-font);
+        font-size: 18px;
+        color: var(--accent-color);
+        margin-left: 15px;
+    }
+
+    /* Buttons */
+    .btn-glow {
+        background: var(--accent-color);
+        color: #fff;
+        font-family: var(--accent-font);
+        font-size: 18px;
+        letter-spacing: 1px;
+        padding: 14px 30px;
+        border-radius: 100px;
+        border: none;
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        z-index: 1;
+    }
+
+    .btn-glow::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%;
+        width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: 0.5s;
+        z-index: -1;
+    }
+
+    .btn-glow:hover {
+        background: #fff;
+        color: var(--primary-color);
+        box-shadow: 0 0 20px rgba(196, 34, 33, 0.4);
+    }
+
+    .btn-glow:hover::before {
+        left: 100%;
+    }
+
+    .btn-outline-glow {
+        background: transparent;
+        border: 1px solid var(--card-border);
+        color: var(--text-color);
+        font-family: var(--accent-font);
+        font-size: 18px;
+        padding: 12px 30px;
+        border-radius: 100px;
+        width: 100%;
+        display: block;
+        text-align: center;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        margin-top: 10px;
+    }
+
+    .btn-outline-glow:hover {
+        border-color: #fff;
+        color: #fff;
+        background: rgba(255,255,255,0.05);
+    }
+
+    /* Animations */
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+    }
+    
+    /* Responsive */
+    @media (max-width: 991px) {
+        .match-score { font-size: 5rem; }
+        .team-logo-wrapper { width: 120px; height: 120px; }
+        .team-name { font-size: 24px; }
+    }
+    
+    @media (max-width: 768px) {
+        .match-scoreboard { flex-direction: column; gap: 20px; }
+        .score-container { order: 2; margin: 20px 0; }
+        .team-display { order: 1; }
+        .team-display:last-child { order: 3; }
+        .match-score { font-size: 4rem; }
+        .vs-badge { display: none; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="match-hero">
+    <div class="container hero-content">
+        <!-- Match Meta Top -->
+        <div class="text-center mb-5 fade-in-up">
+            {% if is_live %}
+                <span class="match-status-badge status-live"><i class="fas fa-circle mr-1" style="font-size: 8px; vertical-align: middle;"></i> Live Now</span>
+            {% elif match.status == 'finished' %}
+                <span class="match-status-badge status-finished">Full Time</span>
+            {% else %}
+                <span class="match-status-badge status-scheduled">Upcoming</span>
+            {% endif %}
+            
+            <div class="text-uppercase font-weight-bold" style="letter-spacing: 2px; font-size: 14px; color: rgba(255,255,255,0.6);">
+                {{ match.league }} • {{ match.date_time|date:"F d, Y" }}
+            </div>
+        </div>
+
+        <!-- Scoreboard -->
+        <div class="match-scoreboard">
+            <!-- Home Team -->
+            <div class="team-display">
+                <div class="team-logo-wrapper">
+                    {% if match.home_team.logo %}
+                        <img src="{{ match.home_team.logo.url }}" alt="{{ match.home_team.name }}">
+                    {% else %}
+                         <div class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle" style="background: rgba(255,255,255,0.1); font-size: 40px; color: #fff; font-weight: bold;">
+                            {{ match.home_team.name|slice:":2" }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="team-name">{{ match.home_team.name }}</div>
+                <div class="team-label">Home</div>
+            </div>
+
+            <!-- Score/Time -->
+            <div class="score-container">
+                {% if match.status == 'scheduled' %}
+                    <div class="vs-badge">VS</div>
+                    <div class="match-time-hero mt-3">{{ match.date_time|date:"H:i" }}</div>
+                {% else %}
+                    <div class="match-score">
+                        <span>{{ match.home_score }}</span>
+                        <span style="opacity: 0.3;">:</span>
+                        <span>{{ match.away_score }}</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Away Team -->
+            <div class="team-display">
+                <div class="team-logo-wrapper">
+                    {% if match.away_team.logo %}
+                        <img src="{{ match.away_team.logo.url }}" alt="{{ match.away_team.name }}">
+                    {% else %}
+                        <div class="d-flex align-items-center justify-content-center w-100 h-100 rounded-circle" style="background: rgba(255,255,255,0.1); font-size: 40px; color: #fff; font-weight: bold;">
+                            {{ match.away_team.name|slice:":2" }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="team-name">{{ match.away_team.name }}</div>
+                <div class="team-label">Away</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5" style="margin-top: -60px; position: relative; z-index: 10;">
+    <div class="row">
+        <!-- Main Content Column -->
+        <div class="col-lg-8">
+            <!-- Venue Card -->
+            <div class="glass-card mb-4">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="glass-card-title mb-2">Match Venue</div>
+                        <div class="text-white-50"><i class="fas fa-map-marker-alt text-danger mr-2"></i>{{ match.venue.name }}, {{ match.venue.city }}</div>
+                    </div>
+                    <div>
+                         <a href="#" class="btn btn-sm btn-outline-light rounded-pill px-4">Directions</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Match Overview -->
+            <div class="glass-card">
+                <div class="glass-card-header">
+                    <h3 class="glass-card-title">Match Overview</h3>
+                </div>
+                <p class="text-white-50" style="line-height: 1.8;">
+                    Witness the clash between <strong>{{ match.home_team.name }}</strong> and <strong>{{ match.away_team.name }}</strong>. 
+                    This {{ match.league }} fixture promises excitement as both teams look to secure crucial points at {{ match.venue.name }}.
+                </p>
+
+                <div class="row mt-5">
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <h5 class="text-white mb-3" style="font-family: var(--accent-font); letter-spacing: 1px;">{{ match.home_team.name }} Recent Form</h5>
+                        {% for m in home_recent %}
+                            <div class="recent-result-item">
+                                <span class="recent-match-teams text-truncate">{{ m.home_team.name }} vs {{ m.away_team.name }}</span>
+                                <span class="recent-match-score">{{ m.home_score }}-{{ m.away_score }}</span>
+                            </div>
+                        {% empty %}
+                            <div class="text-white-50 small font-italic">No recent matches found.</div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="text-white mb-3" style="font-family: var(--accent-font); letter-spacing: 1px;">{{ match.away_team.name }} Recent Form</h5>
+                        {% for m in away_recent %}
+                            <div class="recent-result-item">
+                                <span class="recent-match-teams text-truncate">{{ m.home_team.name }} vs {{ m.away_team.name }}</span>
+                                <span class="recent-match-score">{{ m.home_score }}-{{ m.away_score }}</span>
+                            </div>
+                        {% empty %}
+                            <div class="text-white-50 small font-italic">No recent matches found.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4 mt-4 mt-lg-0">
+            <div class="glass-card sticky-top" style="top: 100px;">
+                <div class="glass-card-header">
+                    <h3 class="glass-card-title">Quick Stats</h3>
+                </div>
+                
+                <div class="info-list-item">
+                    <span class="info-label">League</span>
+                    <span class="info-value">{{ match.league }}</span>
+                </div>
+                <div class="info-list-item">
+                    <span class="info-label">Date</span>
+                    <span class="info-value">{{ match.date_time|date:"d M Y" }}</span>
+                </div>
+                <div class="info-list-item">
+                    <span class="info-label">Time</span>
+                    <span class="info-value">{{ match.date_time|date:"H:i" }}</span>
+                </div>
+                <div class="info-list-item">
+                    <span class="info-label">Status</span>
+                    <span class="info-value text-capitalize">{{ match.status }}</span>
+                </div>
+                <div class="info-list-item">
+                    <span class="info-label">Round</span>
+                    <span class="info-value">Regular Season</span>
+                </div>
+
+                <div class="mt-4 pt-3 border-top border-white-50" style="border-color: rgba(255,255,255,0.1) !important;">
+                    <a href="{% url 'payment_mock' match.id %}" class="btn-glow mb-2 text-decoration-none d-block text-center">Buy Tickets</a>
+                    <a href="{% url 'user_dashboard' %}" class="btn-outline-glow">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

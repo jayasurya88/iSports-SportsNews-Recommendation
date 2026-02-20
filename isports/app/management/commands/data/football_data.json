@@ -1,0 +1,656 @@
+{
+  "leagues": [
+    {
+      "name": "English Premier League",
+      "sport": "Football",
+      "teams": [
+        {
+          "name": "Arsenal",
+          "city": "London",
+          "venue": "Emirates Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Aston Villa",
+          "city": "Birmingham",
+          "venue": "Villa Park",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/9/9f/Aston_Villa_FC_crest_%282016%29.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Bournemouth",
+          "city": "Bournemouth",
+          "venue": "Vitality Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/e/e5/AFC_Bournemouth_%282013%29.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Brentford",
+          "city": "London",
+          "venue": "Gtech Community Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/2/2a/Brentford_FC_crest.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Brighton",
+          "city": "Brighton",
+          "venue": "Amex Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/f/fd/Brighton_%26_Hove_Albion_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Burnley",
+          "city": "Burnley",
+          "venue": "Turf Moor",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/6/62/Burnley_F.C._Logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Chelsea",
+          "city": "London",
+          "venue": "Stamford Bridge",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Crystal Palace",
+          "city": "London",
+          "venue": "Selhurst Park",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/a/a2/Crystal_Palace_FC_logo_%282022%29.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Everton",
+          "city": "Liverpool",
+          "venue": "Goodison Park",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/7/7c/Everton_FC_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Fulham",
+          "city": "London",
+          "venue": "Craven Cottage",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/e/eb/Fulham_FC_%28shield%29.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Liverpool",
+          "city": "Liverpool",
+          "venue": "Anfield",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Luton Town",
+          "city": "Luton",
+          "venue": "Kenilworth Road",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/9/9d/Luton_Town_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Manchester City",
+          "city": "Manchester",
+          "venue": "Etihad Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Manchester United",
+          "city": "Manchester",
+          "venue": "Old Trafford",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Newcastle United",
+          "city": "Newcastle",
+          "venue": "St James' Park",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/5/56/Newcastle_United_Logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Nottingham Forest",
+          "city": "Nottingham",
+          "venue": "City Ground",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/e/e5/Nottingham_Forest_F.C._logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Sheffield United",
+          "city": "Sheffield",
+          "venue": "Bramall Lane",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/9/9c/Sheffield_United_FC_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Tottenham Hotspur",
+          "city": "London",
+          "venue": "Tottenham Hotspur Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/b/b4/Tottenham_Hotspur.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "West Ham United",
+          "city": "London",
+          "venue": "London Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/c/c2/West_Ham_United_FC_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Wolverhampton Wanderers",
+          "city": "Wolverhampton",
+          "venue": "Molineux Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/f/fc/Wolverhampton_Wanderers.svg",
+          "capacity": 30000
+        }
+      ]
+    },
+    {
+      "name": "Spanish La Liga",
+      "sport": "Football",
+      "teams": [
+        {
+          "name": "Real Madrid",
+          "city": "Madrid",
+          "venue": "Santiago Bernab\u00e9u",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Barcelona",
+          "city": "Barcelona",
+          "venue": "Camp Nou",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Atletico Madrid",
+          "city": "Madrid",
+          "venue": "Wanda Metropolitano",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Girona",
+          "city": "Girona",
+          "venue": "Montilivi",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/9/90/Girona_FC_Logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Athletic Bilbao",
+          "city": "Bilbao",
+          "venue": "San Mam\u00e9s",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/9/98/Club_Athletic_Bilbao_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Real Sociedad",
+          "city": "San Sebasti\u00e1n",
+          "venue": "Reale Arena",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/f/f1/Real_Sociedad_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Real Betis",
+          "city": "Seville",
+          "venue": "Benito Villamar\u00edn",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/1/13/Real_betis_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Valencia",
+          "city": "Valencia",
+          "venue": "Mestalla",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/c/ce/Valenciacf.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Villarreal",
+          "city": "Villarreal",
+          "venue": "Estadio de la Cer\u00e1mica",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/7/70/Villarreal_CF_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Getafe",
+          "city": "Getafe",
+          "venue": "Coliseum Alfonso P\u00e9rez",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/4/4c/Getafe_CF_logo_%282023%29.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Osasuna",
+          "city": "Pamplona",
+          "venue": "El Sadar",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/d/db/Osasuna_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Sevilla",
+          "city": "Seville",
+          "venue": "Ram\u00f3n S\u00e1nchez Pizju\u00e1n",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/3/3b/Sevilla_FC_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Las Palmas",
+          "city": "Las Palmas",
+          "venue": "Estadio Gran Canaria",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/b/b2/UD_Las_Palmas_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Alaves",
+          "city": "Vitoria-Gasteiz",
+          "venue": "Mendizorrotza",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/2/2e/Deportivo_Alaves_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Rayo Vallecano",
+          "city": "Madrid",
+          "venue": "Vallecas",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/1/19/Rayo_Vallecano_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Mallorca",
+          "city": "Palma",
+          "venue": "Son Moix",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/e/e0/RCD_Mallorca_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Celta Vigo",
+          "city": "Vigo",
+          "venue": "Bala\u00eddos",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/1/12/RC_Celta_de_Vigo_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Cadiz",
+          "city": "C\u00e1diz",
+          "venue": "Nuevo Mirandilla",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/5/58/C%C3%A1diz_CF_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Granada",
+          "city": "Granada",
+          "venue": "Nuevo Los C\u00e1rmenes",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/d/d5/Granada_CF_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Almeria",
+          "city": "Almer\u00eda",
+          "venue": "Power Horse Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/e/e0/UD_Almer%C3%ADa_logo.svg",
+          "capacity": 30000
+        }
+      ]
+    },
+    {
+      "name": "German Bundesliga",
+      "sport": "Football",
+      "teams": [
+        {
+          "name": "Bayer Leverkusen",
+          "city": "Leverkusen",
+          "venue": "BayArena",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/5/59/Bayer_04_Leverkusen_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Bayern Munich",
+          "city": "Munich",
+          "venue": "Allianz Arena",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "VfB Stuttgart",
+          "city": "Stuttgart",
+          "venue": "MHPArena",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/commons/e/eb/VfB_Stuttgart_1893_Logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "RB Leipzig",
+          "city": "Leipzig",
+          "venue": "Red Bull Arena",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/0/04/RB_Leipzig_2014_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Borussia Dortmund",
+          "city": "Dortmund",
+          "venue": "Signal Iduna Park",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Eintracht Frankfurt",
+          "city": "Frankfurt",
+          "venue": "Deutsche Bank Park",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Eintracht_Frankfurt_Logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "SC Freiburg",
+          "city": "Freiburg",
+          "venue": "Europa-Park Stadion",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/6/6d/SC_Freiburg_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Hoffenheim",
+          "city": "Sinsheim",
+          "venue": "PreZero Arena",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/commons/e/e7/Logo_TSG_Hoffenheim.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Heidenheim",
+          "city": "Heidenheim",
+          "venue": "Voith-Arena",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/commons/9/9d/1._FC_Heidenheim_1846.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Werder Bremen",
+          "city": "Bremen",
+          "venue": "Weserstadion",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/commons/b/be/SV-Werder-Bremen-Logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Augsburg",
+          "city": "Augsburg",
+          "venue": "WWK Arena",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/5/59/FC_Augsburg_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Wolfsburg",
+          "city": "Wolfsburg",
+          "venue": "Volkswagen Arena",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/commons/c/ce/VfL_Wolfsburg_Logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Borussia Monchengladbach",
+          "city": "Monchengladbach",
+          "venue": "Borussia-Park",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/commons/8/81/Borussia_M%C3%B6nchengladbach_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Bochum",
+          "city": "Bochum",
+          "venue": "Vonovia Ruhrstadion",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/commons/7/72/VfL_Bochum_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Union Berlin",
+          "city": "Berlin",
+          "venue": "Stadion An der Alten F\u00f6rsterei",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/commons/4/44/1._FC_Union_Berlin_Logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Mainz 05",
+          "city": "Mainz",
+          "venue": "Mewa Arena",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/commons/9/9e/FSV_Mainz_05_Logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "FC Koln",
+          "city": "Cologne",
+          "venue": "RheinEnergieStadion",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/5/53/FC_Cologne_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Darmstadt",
+          "city": "Darmstadt",
+          "venue": "Merck-Stadion am B\u00f6llenfalltor",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/8/87/SV_Darmstadt_98_Logo.svg",
+          "capacity": 30000
+        }
+      ]
+    },
+    {
+      "name": "Italian Serie A",
+      "sport": "Football",
+      "teams": [
+        {
+          "name": "Inter Milan",
+          "city": "Milan",
+          "venue": "San Siro",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "AC Milan",
+          "city": "Milan",
+          "venue": "San Siro",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Juventus",
+          "city": "Turin",
+          "venue": "Allianz Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/commons/b/bc/Juventus_FC_2017_icon_%28black%29.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Bologna",
+          "city": "Bologna",
+          "venue": "Stadio Renato Dall'Ara",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/5/5b/Bologna_F.C._1909_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "AS Roma",
+          "city": "Rome",
+          "venue": "Stadio Olimpico",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/f/f7/AS_Roma_logo_%282017%29.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Atalanta",
+          "city": "Bergamo",
+          "venue": "Gewiss Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/6/66/AtalantaBC.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Lazio",
+          "city": "Rome",
+          "venue": "Stadio Olimpico",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/c/ce/S.S._Lazio_badge.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Fiorentina",
+          "city": "Florence",
+          "venue": "Stadio Artemio Franchi",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/b/ba/ACF_Fiorentina_2_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Torino",
+          "city": "Turin",
+          "venue": "Stadio Olimpico Grande Torino",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/2/2e/Torino_FC_Logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Napoli",
+          "city": "Naples",
+          "venue": "Stadio Diego Armando Maradona",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/commons/2/2d/SSC_Napoli_End_of_Season_Logo.svg",
+          "capacity": 30000
+        }
+      ]
+    },
+    {
+      "name": "French Ligue 1",
+      "sport": "Football",
+      "teams": [
+        {
+          "name": "Paris Saint-Germain",
+          "city": "Paris",
+          "venue": "Parc des Princes",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Monaco",
+          "city": "Monaco",
+          "venue": "Stade Louis II",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/b/ba/AS_Monaco_FC.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Brest",
+          "city": "Brest",
+          "venue": "Stade Francis-Le Bl\u00e9",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/0/05/Stade_Brestois_29_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Lille",
+          "city": "Lille",
+          "venue": "Stade Pierre-Mauroy",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/6/6f/LOSC_Lille_Logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Nice",
+          "city": "Nice",
+          "venue": "Allianz Riviera",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/2/28/OGC_Nice_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Lens",
+          "city": "Lens",
+          "venue": "Stade Bollaert-Delelis",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/c/cc/RC_Lens_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Marseille",
+          "city": "Marseille",
+          "venue": "Stade V\u00e9lodrome",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/commons/d/d8/Olympique_Marseille_logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Rennes",
+          "city": "Rennes",
+          "venue": "Roazhon Park",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/9/9e/Stade_Rennais_FC.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Reims",
+          "city": "Reims",
+          "venue": "Stade Auguste-Delaune",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/c/cb/Stade_de_Reims_Logo.svg",
+          "capacity": 30000
+        },
+        {
+          "name": "Lyon",
+          "city": "Lyon",
+          "venue": "Groupama Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/c/c6/Olympique_Lyonnais.svg",
+          "capacity": 30000
+        }
+      ]
+    },
+    {
+      "name": "Indian Premier League (IPL)",
+      "sport": "Cricket",
+      "teams": [
+        {
+          "name": "Chennai Super Kings",
+          "city": "Chennai",
+          "venue": "M. A. Chidambaram Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/thumb/2/2b/Chennai_Super_Kings_Logo.svg/1200px-Chennai_Super_Kings_Logo.svg.png",
+          "capacity": 30000
+        },
+        {
+          "name": "Mumbai Indians",
+          "city": "Mumbai",
+          "venue": "Wankhede Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/thumb/c/cd/Mumbai_Indians_Logo.svg/1200px-Mumbai_Indians_Logo.svg.png",
+          "capacity": 30000
+        },
+        {
+          "name": "Royal Challengers Bengaluru",
+          "city": "Bengaluru",
+          "venue": "M. Chinnaswamy Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/thumb/2/2a/Royal_Challengers_Bangalore_2020.svg/1200px-Royal_Challengers_Bangalore_2020.svg.png",
+          "capacity": 30000
+        },
+        {
+          "name": "Kolkata Knight Riders",
+          "city": "Kolkata",
+          "venue": "Eden Gardens",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/thumb/4/4c/Kolkata_Knight_Riders_Logo.svg/1200px-Kolkata_Knight_Riders_Logo.svg.png",
+          "capacity": 30000
+        },
+        {
+          "name": "Sunrisers Hyderabad",
+          "city": "Hyderabad",
+          "venue": "Rajiv Gandhi International Cricket Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/thumb/8/81/Sunrisers_Hyderabad.svg/1200px-Sunrisers_Hyderabad.svg.png",
+          "capacity": 30000
+        },
+        {
+          "name": "Rajasthan Royals",
+          "city": "Jaipur",
+          "venue": "Sawai Mansingh Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/thumb/6/60/Rajasthan_Royals_Logo.svg/1200px-Rajasthan_Royals_Logo.svg.png",
+          "capacity": 30000
+        },
+        {
+          "name": "Gujarat Titans",
+          "city": "Ahmedabad",
+          "venue": "Narendra Modi Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/thumb/0/09/Gujarat_Titans_Logo.svg/1200px-Gujarat_Titans_Logo.svg.png",
+          "capacity": 30000
+        },
+        {
+          "name": "Lucknow Super Giants",
+          "city": "Lucknow",
+          "venue": "BRSABV Ekana Cricket Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/thumb/a/a9/Lucknow_Super_Giants_IPL_Logo.svg/1200px-Lucknow_Super_Giants_IPL_Logo.svg.png",
+          "capacity": 30000
+        },
+        {
+          "name": "Delhi Capitals",
+          "city": "New Delhi",
+          "venue": "Arun Jaitley Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/thumb/2/2f/Delhi_Capitals_Logo.svg/1200px-Delhi_Capitals_Logo.svg.png",
+          "capacity": 30000
+        },
+        {
+          "name": "Punjab Kings",
+          "city": "Mohali",
+          "venue": "IS Bindra Stadium",
+          "logo_url": "https://upload.wikimedia.org/wikipedia/en/thumb/d/d4/Punjab_Kings_Logo.svg/1200px-Punjab_Kings_Logo.svg.png",
+          "capacity": 30000
+        }
+      ]
+    }
+  ]
+}

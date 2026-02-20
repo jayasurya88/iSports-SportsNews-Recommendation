@@ -1,0 +1,350 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}All Events - iSports{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .events-hero {
+        position: relative;
+        padding: 160px 0 100px;
+        background: radial-gradient(circle at 50% 50%, #1a202c 0%, #0b0e11 100%);
+        overflow: hidden;
+    }
+
+    .events-hero::before {
+        content: '';
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        background: var(--accent-color);
+        border-radius: 50%;
+        top: -200px;
+        right: -150px;
+        filter: blur(150px);
+        opacity: 0.15;
+    }
+
+    .page-title {
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        background: linear-gradient(to right, #fff, rgba(255,255,255,0.7));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Filter Bar */
+    .filter-container {
+        margin-top: -50px;
+        position: relative;
+        z-index: 10;
+        padding: 0 15px;
+    }
+
+    .filter-bar {
+        background: #121418;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    .form-control-custom {
+        background: #0b0e11;
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #fff;
+        height: 50px;
+        padding: 0 20px;
+        border-radius: 12px;
+        transition: all 0.3s;
+    }
+
+    .form-control-custom:focus {
+        background: #0b0e11;
+        border-color: var(--accent-color);
+        color: #fff;
+        box-shadow: 0 0 0 3px rgba(196, 34, 33, 0.1);
+    }
+
+    .btn-filter {
+        height: 50px;
+        border-radius: 12px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    /* Event Cards */
+    .event-card-wrapper {
+        margin-bottom: 30px;
+    }
+
+    .event-card {
+        background: #121418;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 24px;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        height: 100%;
+        position: relative;
+    }
+
+    .event-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px -10px rgba(0,0,0,0.6);
+        border-color: rgba(255,255,255,0.15);
+    }
+
+    .card-header-gradient {
+        height: 6px;
+        background: linear-gradient(90deg, var(--accent-color), #8a1c1c);
+        width: 100%;
+    }
+
+    .event-card-body {
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .league-tag {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: rgba(255,255,255,0.5);
+        margin-bottom: 25px;
+        border: 1px solid rgba(255,255,255,0.1);
+        padding: 6px 14px;
+        border-radius: 30px;
+        display: inline-block;
+    }
+
+    .matchup-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        margin-bottom: 30px;
+    }
+
+    .team-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        flex: 1;
+    }
+
+    .team-logo-lg {
+        width: 70px;
+        height: 70px;
+        object-fit: contain;
+        margin-bottom: 15px;
+        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+    }
+
+    .team-name-lg {
+        font-weight: 700;
+        font-size: 1rem;
+        color: #fff;
+        line-height: 1.3;
+        max-width: 120px;
+    }
+
+    .match-vs {
+        font-family: var(--accent-font);
+        font-size: 1.8rem;
+        color: rgba(255,255,255,0.2);
+        margin: 0 15px;
+    }
+
+    .match-info-separator {
+        width: 100%;
+        height: 1px;
+        background: rgba(255,255,255,0.05);
+        margin-bottom: 25px;
+    }
+
+    .match-details-row {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        color: rgba(255,255,255,0.6);
+        font-size: 0.9rem;
+        margin-bottom: 25px;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .detail-item i {
+        color: var(--accent-color);
+    }
+
+    .card-footer-btn {
+        width: 100%;
+        background: rgba(255,255,255,0.03);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.1);
+        padding: 12px;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s;
+        text-align: center;
+        text-decoration: none;
+        display: block;
+    }
+
+    .card-footer-btn:hover {
+        background: var(--accent-color);
+        border-color: var(--accent-color);
+        color: #fff;
+    }
+
+    /* Empty State */
+    .empty-search {
+        background: #121418;
+        border-radius: 20px;
+        padding: 60px;
+        text-align: center;
+        border: 1px solid rgba(255,255,255,0.05);
+        margin-top: 40px;
+    }
+
+    .empty-icon {
+        font-size: 50px;
+        color: rgba(255,255,255,0.1);
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="events-hero">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2 text-center">
+                <span class="text-accent text-uppercase small font-weight-bold" style="letter-spacing: 2px;">Discover & Save</span>
+                <h1 class="page-title fade-in-up">Upcoming Events</h1>
+                <p class="lead text-white-50 fade-in-up" style="animation-delay: 0.1s">Browse matches, compare odds, and book your tickets securely.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="filter-container fade-in-up" style="animation-delay: 0.2s">
+        <div class="filter-bar">
+            <form method="GET" class="row align-items-end g-3">
+                <div class="col-lg-5 mb-3 mb-lg-0">
+                    <label class="text-white-50 small mb-2 ml-1">Search</label>
+                    <input type="text" name="q" class="form-control form-control-custom" placeholder="Search teams, venues..." value="{{ request.GET.q|default:'' }}">
+                </div>
+                <div class="col-lg-4 mb-3 mb-lg-0">
+                    <label class="text-white-50 small mb-2 ml-1">Filter by League</label>
+                    <select name="league" class="form-control form-control-custom" style="padding-top: 5px;">
+                        <option value="">All Leagues</option>
+                        {% for league in leagues %}
+                            <option value="{{ league }}" {% if request.GET.league == league %}selected{% endif %}>{{ league }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-lg-3">
+                    <button type="submit" class="btn-default btn-filter w-100">Find Matches</button>
+                    <!-- <a href="{% url 'events_list' %}" class="btn btn-link text-white-50 small w-100 mt-2">Reset Filters</a> -->
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        {% for match in matches %}
+        <div class="col-lg-4 col-md-6 event-card-wrapper fade-in-up" style="animation-delay: 0.{{ forloop.counter }}s">
+            <div class="event-card">
+                <div class="card-header-gradient"></div>
+                <div class="event-card-body">
+                    <div class="league-tag">{{ match.league }}</div>
+                    
+                    <div class="matchup-row">
+                        <div class="team-col">
+                            {% if match.home_team.logo %}
+                                <img src="{{ match.home_team.logo.url }}" class="team-logo-lg" alt="">
+                            {% else %}
+                                <div class="team-logo-lg bg-dark rounded-circle d-flex align-items-center justify-content-center border border-secondary">
+                                    <span class="text-white small">{{ match.home_team.name|slice:":2" }}</span>
+                                </div>
+                            {% endif %}
+                            <span class="team-name-lg">{{ match.home_team.name }}</span>
+                        </div>
+                        
+                        <div class="match-vs">VS</div>
+                        
+                        <div class="team-col">
+                            {% if match.away_team.logo %}
+                                <img src="{{ match.away_team.logo.url }}" class="team-logo-lg" alt="">
+                            {% else %}
+                                <div class="team-logo-lg bg-dark rounded-circle d-flex align-items-center justify-content-center border border-secondary">
+                                    <span class="text-white small">{{ match.away_team.name|slice:":2" }}</span>
+                                </div>
+                            {% endif %}
+                            <span class="team-name-lg">{{ match.away_team.name }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="match-info-separator"></div>
+                    
+                    <div class="match-details-row">
+                        <div class="detail-item">
+                            <i class="far fa-calendar-alt"></i>
+                            <span>{{ match.date_time|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="far fa-clock"></i>
+                            <span>{{ match.date_time|date:"H:i" }}</span>
+                        </div>
+                    </div>
+                    
+                    <a href="{% url 'match_detail' match.id %}" class="card-footer-btn">
+                        Get Tickets <i class="fas fa-arrow-right ml-2 text-small"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="empty-search fade-in-up">
+                <i class="fas fa-search empty-icon"></i>
+                <h3 class="text-white mb-3">No matches found</h3>
+                <p class="text-white-50">We couldn't find any events matching your search filters.</p>
+                <a href="{% url 'events_list' %}" class="btn-default btn-small mt-3">Clear Filters</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination (if applicable) -->
+    {% if matches.has_other_pages %}
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            <!-- Simplified Pagination for now -->
+            <div class="btn-group">
+                {% if matches.has_previous %}
+                    <a href="?page={{ matches.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.league %}&league={{ request.GET.league }}{% endif %}" class="btn btn-outline-light btn-sm px-3">Previous</a>
+                {% endif %}
+                
+                <span class="btn btn-dark btn-sm px-3 disabled text-white-50">Page {{ matches.number }} of {{ matches.paginator.num_pages }}</span>
+                
+                {% if matches.has_next %}
+                    <a href="?page={{ matches.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.league %}&league={{ request.GET.league }}{% endif %}" class="btn btn-outline-light btn-sm px-3">Next</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

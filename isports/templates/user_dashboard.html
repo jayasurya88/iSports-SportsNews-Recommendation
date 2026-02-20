@@ -1,0 +1,541 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User Dashboard - iSports{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --dashboard-bg: #0b0e11;
+        --card-bg: rgba(255, 255, 255, 0.02);
+        --card-border: 1px solid rgba(255, 255, 255, 0.05);
+        --accent-glow: rgba(196, 34, 33, 0.15);
+    }
+
+    body {
+        background-color: var(--dashboard-bg);
+    }
+
+    /* Dashboard Header */
+    .dashboard-hero {
+        padding: 140px 0 60px;
+        background: radial-gradient(circle at 80% 20%, rgba(196, 34, 33, 0.1) 0%, transparent 50%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .welcome-text h1 {
+        font-size: 3.5rem;
+        line-height: 1.1;
+        margin-bottom: 15px;
+        background: linear-gradient(to right, #fff, rgba(255,255,255,0.7));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .stat-box {
+        background: var(--card-bg);
+        border: var(--card-border);
+        border-radius: 16px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+
+    .stat-box:hover {
+        transform: translateY(-5px);
+        border-color: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        background: rgba(196, 34, 33, 0.1);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent-color);
+        font-size: 20px;
+    }
+
+    /* Match Cards */
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .section-title h2 {
+        font-size: 28px;
+        color: #fff;
+        margin-bottom: 5px;
+        font-family: var(--accent-font);
+        letter-spacing: 1px;
+    }
+
+    .filter-btn {
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.1);
+        color: rgba(255,255,255,0.6);
+        padding: 8px 16px;
+        border-radius: 30px;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+
+    .filter-btn.active, .filter-btn:hover {
+        background: #fff;
+        color: #000;
+        border-color: #fff;
+    }
+
+    .match-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 25px;
+    }
+
+    .match-card-modern {
+        background: #121418;
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 20px;
+        overflow: hidden;
+        position: relative;
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    .match-card-modern:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px -15px rgba(0,0,0,0.7);
+        border-color: rgba(255,255,255,0.15);
+    }
+
+    .match-card-header {
+        padding: 15px 20px;
+        background: rgba(255,255,255,0.02);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        color: rgba(255,255,255,0.5);
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+
+    .live-badge {
+        background: rgba(255, 0, 0, 0.15);
+        color: #ff4d4d;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .live-dot {
+        width: 6px;
+        height: 6px;
+        background: #ff4d4d;
+        border-radius: 50%;
+        animation: blink 1.5s infinite;
+    }
+
+    @keyframes blink { 50% { opacity: 0.3; } }
+
+    .match-card-body {
+        padding: 25px 20px;
+    }
+
+    .team-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 15px;
+    }
+
+    .team-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .team-logo {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    }
+
+    .team-name {
+        color: #fff;
+        font-weight: 600;
+        font-size: 15px;
+    }
+
+    .team-score {
+        font-family: var(--accent-font);
+        font-size: 20px;
+        color: #fff;
+    }
+
+    .match-meta {
+        font-size: 12px;
+        color: rgba(255,255,255,0.4);
+        margin-top: 5px;
+        display: flex;
+        gap: 15px;
+    }
+
+    .match-meta i { color: var(--accent-color); margin-right: 5px; }
+
+    .match-card-footer {
+        padding: 15px 20px;
+        border-top: 1px solid rgba(255,255,255,0.03);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .btn-action {
+        background: #fff;
+        color: #000;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+        background: #e6e6e6;
+        color: #000;
+        transform: scale(1.05);
+    }
+    
+    .btn-prediction {
+        background: rgba(255,255,255,0.05);
+        color: #fff;
+    }
+    
+    .btn-prediction:hover {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+    }
+
+    /* Sidebar */
+    .sidebar-widget {
+        background: #121418;
+        border-radius: 20px;
+        padding: 25px;
+        border: 1px solid rgba(255,255,255,0.05);
+        margin-bottom: 30px;
+    }
+
+    .widget-title {
+        color: #fff;
+        font-family: var(--accent-font);
+        font-size: 20px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .news-card-mini {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        transition: transform 0.2s;
+    }
+    
+    .news-card-mini:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .news-card-mini:hover {
+        transform: translateX(5px);
+    }
+    
+    .news-thumb {
+        width: 80px;
+        height: 60px;
+        border-radius: 8px;
+        object-fit: cover;
+    }
+
+    .news-content h5 {
+        font-size: 14px;
+        color: #e0e0e0;
+        line-height: 1.4;
+        margin-bottom: 5px;
+    }
+
+    .news-meta {
+        font-size: 11px;
+        color: rgba(255,255,255,0.4);
+    }
+    
+    .followed-team-item {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        background: rgba(255,255,255,0.02);
+        border-radius: 10px;
+        margin-bottom: 10px;
+        transition: background 0.2s;
+    }
+    
+    .followed-team-item:hover {
+        background: rgba(255,255,255,0.05);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: rgba(255,255,255,0.3);
+    }
+    
+    .empty-state i {
+        font-size: 40px;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+
+    /* Scrollbar for widgets */
+    .scrollable-widget {
+        max-height: 400px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+    
+    .scrollable-widget::-webkit-scrollbar {
+        width: 4px;
+    }
+    
+    .scrollable-widget::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.1);
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-hero">
+    <div class="container">
+        <div class="row align-items-end">
+            <div class="col-lg-7">
+                <div class="welcome-text fade-in-up">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="badge badge-pill badge-dark border border-secondary px-3 py-2 mr-3">Premium Member</span>
+                        <span class="text-white-50 small"><i class="far fa-calendar-alt mr-2"></i>{% now "l, F jS" %}</span>
+                    </div>
+                    <h1>Hello, {{ request.user.username }}</h1>
+                    <p class="lead text-white-50">Here's what's happening in your sports world today.</p>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="stat-box">
+                            <div class="stat-icon"><i class="fas fa-heart"></i></div>
+                            <div>
+                                <h3 class="mb-0 text-white">{{ favorite_teams.count }}</h3>
+                                <small class="text-white-50">Teams Followed</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-box">
+                            <div class="stat-icon"><i class="fas fa-ticket-alt"></i></div>
+                            <div>
+                                <h3 class="mb-0 text-white">0</h3>
+                                <small class="text-white-50">Active Tickets</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row">
+        <!-- Main Content (Matches) -->
+        <div class="col-lg-8">
+            <div class="section-header">
+                <div class="section-title">
+                    <h2>For You</h2>
+                    <span class="text-white-50 small">Curated matches based on your interests</span>
+                </div>
+                <div class="filter-group">
+                    <button class="filter-btn active">All</button>
+                    <button class="filter-btn">Live</button>
+                    <button class="filter-btn">Upcoming</button>
+                </div>
+            </div>
+
+            <div class="match-grid mb-5">
+                {% for match in recommended_matches %}
+                <div class="match-card-modern fade-in-up" style="animation-delay: 0.{{ forloop.counter }}s">
+                    <div class="match-card-header">
+                        <span class="text-uppercase" style="letter-spacing: 1px; font-size: 11px;">{{ match.league }}</span>
+                        {% if match.status == 'live' %}
+                            <div class="live-badge"><div class="live-dot"></div> Live</div>
+                        {% else %}
+                            <span>{{ match.date_time|date:"M d • H:i" }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="match-card-body">
+                        <!-- Home Team -->
+                        <div class="team-row">
+                            <div class="team-info">
+                                {% if match.home_team.logo %}
+                                    <img src="{{ match.home_team.logo.url }}" class="team-logo" alt="">
+                                {% endif %}
+                                <span class="team-name">{{ match.home_team.name }}</span>
+                            </div>
+                            <span class="team-score">{% if match.status != 'scheduled' %}{{ match.home_score }}{% endif %}</span>
+                        </div>
+                        
+                        <!-- Away Team -->
+                        <div class="team-row mb-0">
+                            <div class="team-info">
+                                {% if match.away_team.logo %}
+                                    <img src="{{ match.away_team.logo.url }}" class="team-logo" alt="">
+                                {% endif %}
+                                <span class="team-name">{{ match.away_team.name }}</span>
+                            </div>
+                            <span class="team-score">{% if match.status != 'scheduled' %}{{ match.away_score }}{% endif %}</span>
+                        </div>
+                        
+                        <div class="match-meta">
+                             <span><i class="fas fa-map-marker-alt"></i> {{ match.venue.city }}</span>
+                        </div>
+                    </div>
+                    <div class="match-card-footer">
+                        <span class="text-white-50 small">Matchday {{ forloop.counter }}</span>
+                        <div>
+                             <a href="{% url 'match_detail' match.id %}" class="btn-action btn-prediction mr-2">Preview</a>
+                             <a href="{% url 'match_detail' match.id %}" class="btn-action">Tickets</a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                     <div class="empty-state">
+                        <i class="far fa-calendar-times"></i>
+                        <p>No upcoming matches found for your teams.</p>
+                        <a href="{% url 'events_list' %}" class="btn-action mt-3">Browse All Events</a>
+                     </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if suggested_events %}
+            <div class="section-header mt-5">
+                <div class="section-title">
+                    <h2>Trending Nearby</h2>
+                    <span class="text-white-50 small">Popular events happening soon</span>
+                </div>
+            </div>
+            
+            <div class="match-grid">
+                {% for match in suggested_events %}
+                <div class="match-card-modern">
+                    <div class="match-card-header">
+                        <span class="text-warning small"><i class="fas fa-fire mr-1"></i> Trending</span>
+                        <span class="text-white-50">{{ match.home_team.sport }}</span>
+                    </div>
+                    <div class="match-card-body">
+                         <h5 class="text-white mb-1">{{ match.home_team.name }} vs {{ match.away_team.name }}</h5>
+                         <p class="text-white-50 small mb-0">{{ match.league }} • {{ match.date_time|date:"M d" }}</p>
+                    </div>
+                    <div class="match-card-footer">
+                        <a href="{% url 'match_detail' match.id %}" class="btn-action w-100 text-center">View Details</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Following Widget -->
+            <div class="sidebar-widget">
+                <div class="widget-title">
+                    <span>Following</span>
+                    <a href="{% url 'manage_favorites' %}" class="text-white-50 small" style="font-size: 12px;"><i class="fas fa-cog"></i> Manage</a>
+                </div>
+                <div class="scrollable-widget">
+                    {% for team in favorite_teams %}
+                    <div class="followed-team-item">
+                        {% if team.logo %}
+                            <img src="{{ team.logo.url }}" style="width: 24px; height: 24px; object-fit: contain; margin-right: 10px;">
+                        {% endif %}
+                        <div style="flex: 1;">
+                            <div class="text-white small font-weight-bold">{{ team.name }}</div>
+                            <div class="text-white-50" style="font-size: 10px;">{{ team.league }}</div>
+                        </div>
+                        <i class="fas fa-star text-warning" style="font-size: 10px;"></i>
+                    </div>
+                    {% empty %}
+                    <div class="empty-state py-3">
+                        <p class="small mb-2">You aren't following any teams yet.</p>
+                        <a href="{% url 'manage_favorites' %}" class="text-accent small">Start Following</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- News Widget -->
+            <div class="sidebar-widget">
+                <div class="widget-title">
+                    <span>Latest News</span>
+                    <a href="#" class="text-white-50 small">View All</a>
+                </div>
+                {% for article in news_articles %}
+                <a href="{% url 'news_detail' article.id %}" class="text-decoration-none">
+                    <div class="news-card-mini">
+                        {% if article.image_url %}
+                            <img src="{{ article.image_url }}" class="news-thumb">
+                        {% endif %}
+                        <div class="news-content">
+                            <h5 class="text-truncate-2">{{ article.headline }}</h5>
+                            <div class="news-meta">{{ article.published_at }}</div>
+                        </div>
+                    </div>
+                </a>
+                {% empty %}
+                <div class="empty-state">
+                    <p class="small">No news available.</p>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Ad/Promo Widget -->
+            <div class="sidebar-widget text-center" style="background: linear-gradient(135deg, var(--accent-color), #8a1c1c);">
+                <h4 class="text-white mb-3" style="font-family: var(--accent-font);">Get the Pro Experience</h4>
+                <p class="text-white-50 small mb-4">Unlock advanced stats, ad-free browsing, and priority ticket access.</p>
+                <button class="btn btn-light btn-sm rounded-pill px-4 font-weight-bold">Upgrade Now</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

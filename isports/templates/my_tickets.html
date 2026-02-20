@@ -1,0 +1,532 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Tickets - iSports{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tickets-page {
+        padding: 120px 0 80px;
+        min-height: 100vh;
+        background: radial-gradient(circle at top center, #1a202c 0%, #0b0e11 100%);
+    }
+
+    .page-header {
+        margin-bottom: 60px;
+        text-align: center;
+        position: relative;
+    }
+
+    .page-title {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        background: linear-gradient(to right, #fff, rgba(255,255,255,0.7));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Ticket Card - Premium Stub Design */
+    .ticket-wrapper {
+        perspective: 1000px;
+        margin-bottom: 30px;
+        flex: 1; 
+    }
+
+    .ticket-card {
+        background: #151922;
+        border-radius: 20px;
+        overflow: hidden;
+        position: relative;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        /* Max width removed for table view */
+        width: 100%;
+        margin-bottom: 30px;
+    }
+
+    .ticket-wrapper:hover .ticket-card {
+        transform: translateY(-10px) rotateX(2deg);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+        border-color: rgba(196, 34, 33, 0.3);
+    }
+
+    /* Ticket Top (Visual Header) */
+    .ticket-visual {
+        height: 140px;
+        background: linear-gradient(135deg, #1e232e 0%, #0b0e11 100%);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-bottom: 2px dashed rgba(255,255,255,0.1);
+    }
+
+    .ticket-visual::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20.5V18h2v2.5h-2zM20 23h2v2h-2v-2zM20 25.5v2.5h2v-2.5h-2zM20 20.5h-2.5v2h2.5v-2zM20 23h-2.5v2H20v-2zM20 25.5h-2.5v2H20v-2z' fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+    }
+
+    /* Team Logos in Header */
+    .ticket-teams {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        z-index: 2;
+    }
+
+    .t-logo {
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
+        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+    }
+    
+    .t-logo-placeholder {
+        width: 60px; height: 60px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #fff;
+    }
+
+    .t-vs {
+        font-family: var(--accent-font);
+        font-size: 24px;
+        color: var(--accent-color);
+        opacity: 0.8;
+    }
+
+    /* Status Badge */
+    .ticket-status-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: 4px;
+        letter-spacing: 1px;
+        z-index: 5;
+    }
+
+    .status-active { background: rgba(40, 167, 69, 0.2); color: #28a745; border: 1px solid rgba(40, 167, 69, 0.3); }
+    .status-used { background: rgba(255, 255, 255, 0.1); color: #aaa; }
+
+    /* Semi-circles for perforated effect */
+    .ticket-visual::after, .ticket-visual::before {
+        content: ''; 
+        position: absolute;
+        bottom: -10px;
+        width: 20px; height: 20px;
+        background: radial-gradient(circle at top center, #1a202c 0%, #0b0e11 100%); /* Match page bg */
+        border-radius: 50%;
+        z-index: 10;
+        /* Note: For perfect blending, this should match the container background. 
+           Since container is a gradient, this is tricky. 
+           Using a solid color close to the gradient average or transparent cutout is better.
+           Let's try a masking approach or solid dark color. */
+        background: #1a202c; 
+    }
+    .ticket-visual::before { left: -10px; bottom: -10px; top: auto; background: none; background-image: none; } /* Reset previous ::before */
+    
+    /* Re-implementing circles specifically */
+    .notch {
+        position: absolute;
+        width: 24px; height: 24px;
+        background: #1a202c; /* Matches page section bg approximately */
+        border-radius: 50%;
+        bottom: -12px;
+        z-index: 20;
+    }
+    .notch-left { left: -12px; }
+    .notch-right { right: -12px; }
+
+    /* Ticket Body */
+    .ticket-content {
+        padding: 25px;
+    }
+
+    .match-name {
+        font-family: var(--accent-font);
+        color: #fff;
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        text-align: center;
+        line-height: 1.3;
+        min-height: 3.9rem; /* 3 lines roughly */
+        display: flex; align-items: center; justify-content: center;
+    }
+
+    .t-info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .t-info-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .t-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.4);
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+
+    .t-value {
+        font-size: 14px;
+        color: #fff;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .t-value i {
+        color: var(--accent-color);
+        margin-right: 6px;
+        width: 14px; text-align: center;
+    }
+
+    /* Footer / Action */
+    .ticket-footer {
+        background: rgba(0,0,0,0.3);
+        padding: 15px 25px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .ticket-id-code {
+        font-family: 'Courier New', monospace;
+        color: rgba(255,255,255,0.3);
+        font-size: 12px;
+        letter-spacing: 1px;
+    }
+
+    .btn-action {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center; justify-content: center;
+        transition: all 0.2s;
+        text-decoration: none;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .btn-action:hover {
+        background: var(--accent-color);
+        border-color: var(--accent-color);
+        color: #fff;
+        transform: scale(1.1);
+    }
+    
+    /* QR Overlay on hover */
+    .qr-overlay {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(11, 14, 17, 0.95);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s;
+        z-index: 30;
+        backdrop-filter: blur(5px);
+    }
+    
+    .ticket-card:hover .qr-overlay {
+        /* Optional: Show on simple hover? Or maybe just keep it hidden until clicked. 
+           Let's not auto-show to keep details visible. */
+    }
+    
+    .qr-code-img {
+        width: 120px; height: 120px;
+        background: #fff;
+        border-radius: 10px;
+        padding: 10px;
+        margin-bottom: 20px;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 80px 0;
+    }
+    
+    .empty-icon-circle {
+        width: 120px; height: 120px;
+        background: rgba(255,255,255,0.03);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 30px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    .table-dark {
+        background-color: transparent;
+    }
+    .table-dark td, .table-dark th, .table-dark thead th {
+        border-color: rgba(255,255,255,0.05);
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(255,255,255,0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tickets-page">
+    <div class="container">
+        <!-- Header -->
+        <div class="page-header fade-in-up">
+            <h1 class="page-title">My Tickets</h1>
+            <p class="text-white-50 lead">Manage your upcoming and past match tickets.</p>
+        </div>
+
+        <div class="row">
+            <div class="col-12 fade-in-up">
+                <div class="ticket-card p-0 h-auto" style="box-shadow: none; border: none; background: transparent;">
+                    <div class="table-responsive rounded-lg" style="background: #151922; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 15px 35px rgba(0,0,0,0.5);">
+                        <table class="table table-dark table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="border-top-0 pl-4">Match</th>
+                                    <th class="border-top-0">Date & Time</th>
+                                    <th class="border-top-0">Venue</th>
+                                    <th class="border-top-0">Seat</th>
+                                    <th class="border-top-0">Status</th>
+                                    <th class="border-top-0 text-right pr-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ticket in tickets %}
+                                <tr>
+                                    <td class="align-middle pl-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="d-flex align-items-center justify-content-center mr-3" style="min-width: 100px;">
+                                                <!-- Home Team -->
+                                                <div class="text-center" style="width: 40px;">
+                                                    {% if ticket.match.home_team.logo %}
+                                                        <img src="{{ ticket.match.home_team.logo.url }}" class="img-fluid" style="max-height: 40px; object-fit: contain;" alt="{{ ticket.match.home_team.name }}">
+                                                    {% else %}
+                                                        <div class="t-logo-placeholder" style="width: 40px; height: 40px; font-size: 10px;">{{ ticket.match.home_team.name|slice:":2" }}</div>
+                                                    {% endif %}
+                                                </div>
+                                                
+                                                <div class="mx-2 font-weight-bold text-muted small">VS</div>
+                                                
+                                                <!-- Away Team -->
+                                                <div class="text-center" style="width: 40px;">
+                                                    {% if ticket.match.away_team.logo %}
+                                                        <img src="{{ ticket.match.away_team.logo.url }}" class="img-fluid" style="max-height: 40px; object-fit: contain;" alt="{{ ticket.match.away_team.name }}">
+                                                    {% else %}
+                                                        <div class="t-logo-placeholder" style="width: 40px; height: 40px; font-size: 10px;">{{ ticket.match.away_team.name|slice:":2" }}</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            
+                                            <div>
+                                                <div class="font-weight-bold text-white">{{ ticket.match.home_team.name }}</div>
+                                                <div class="small text-white-50">vs {{ ticket.match.away_team.name }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="align-middle text-white-50">
+                                        <div>{{ ticket.match.date_time|date:"M d, Y" }}</div>
+                                        <div class="small">{{ ticket.match.date_time|date:"H:i" }}</div>
+                                    </td>
+                                    <td class="align-middle text-white-50">{{ ticket.match.venue.name }}</td>
+                                    <td class="align-middle text-white-50">
+                                        <div>{{ ticket.seat_section }}</div>
+                                        <div class="small">x{{ ticket.quantity }}</div>
+                                    </td>
+                                    <td class="align-middle">
+                                        <span class="badge badge-success px-2 py-1" style="background: rgba(40,167,69,0.2); color: #28a745; border: 1px solid rgba(40,167,69,0.3);">{{ ticket.status|upper }}</span>
+                                    </td>
+                                    <td class="align-middle text-right pr-4">
+                                        <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="viewTicket('{{ ticket.id }}', '{{ ticket.ticket_id }}', '{{ ticket.match.home_team.name|escapejs }}', '{{ ticket.match.away_team.name|escapejs }}', '{% if ticket.match.home_team.logo %}{{ ticket.match.home_team.logo.url }}{% endif %}', '{% if ticket.match.away_team.logo %}{{ ticket.match.away_team.logo.url }}{% endif %}', '{{ ticket.match.date_time|date:"M d, Y • H:i" }}', '{{ ticket.match.venue.name|escapejs }}', '{{ ticket.seat_section }}', '{{ ticket.quantity }}')">
+                                            View Ticket
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5">
+                                        <div class="text-white-50">No tickets found. <a href="{% url 'events_list' %}" class="text-primary">Browse Events</a></div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ticket Modal -->
+<div class="modal fade" id="ticketModal" tabindex="-1" role="dialog" aria-hidden="true">
+                <!-- Physical Ticket Design -->
+                <div class="physical-ticket" style="background: #f8f9fa; border-radius: 12px; overflow: hidden; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.5); font-family: 'Arial', sans-serif; color: #333; max-width: 800px; margin: 0 auto; display: flex;">
+                    
+                    <!-- Left Strip (Barcode) -->
+                    <div class="ticket-left" style="width: 60px; background: #fff; border-right: 1px dashed #ccc; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px; position: relative;">
+                         <div style="writing-mode: vertical-rl; text-orientation: mixed; font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 2px; color: #555; white-space: nowrap;">
+                            TICKET ID: <span id="modalTicketIdSide">A1B2C3D4</span>
+                        </div>
+                        <div style="flex-grow: 1; width: 100%; background: repeating-linear-gradient(0deg, #000 0px, #000 2px, #fff 2px, #fff 4px); margin: 20px 0;"></div>
+                        <div style="writing-mode: vertical-rl; text-orientation: mixed; font-size: 8px; color: #999;">TERMS & CONDITIONS APPLY</div>
+                    </div>
+
+                    <!-- Main Ticket Body -->
+                    <div class="ticket-right" style="flex: 1; display: flex; flex-direction: column;">
+                        
+                        <!-- Header Band -->
+                        <div class="ticket-header-band" style="background: #111; color: #fff; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #E4002B;">
+                            <div class="d-flex align-items-center">
+                                <!-- Sponsor 1 -->
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Sports_Direct_Logo.svg/1024px-Sports_Direct_Logo.svg.png" style="height: 16px; margin-right: 15px; opacity: 0.9; background: #fff; padding: 2px; border-radius: 2px;" alt="Sponsor">
+                                <h4 class="m-0 font-weight-bold text-uppercase" id="modalHomeTeam" style="font-family: 'Arial Black', sans-serif; letter-spacing: 0.5px; font-size: 18px;">HOME TEAM</h4>
+                            </div>
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Wonga-logo.png/800px-Wonga-logo.png" style="height: 20px; opacity: 0.8; background: #fff; padding: 2px 5px; border-radius: 2px;" alt="Sponsor">
+                        </div>
+
+                        <!-- Ticket Content -->
+                        <div class="ticket-info-grid" style="padding: 20px; display: flex; position: relative;">
+                            
+                            <!-- Middle Content -->
+                            <div style="flex: 1; padding-right: 20px;">
+                                <h3 class="font-weight-bold mb-1" id="modalAwayTeam" style="font-size: 22px; color: #000;">AWAY TEAM</h3>
+                                <div class="text-uppercase font-weight-bold text-muted mb-4" style="font-size: 12px; letter-spacing: 0.5px;">Barclays Premier League</div>
+                                
+                                <div class="mb-4">
+                                    <div class="font-weight-bold" style="font-size: 14px;">Date & Kick Off</div>
+                                    <div id="modalDateTime" style="font-size: 16px; color: #000;">Sun 01 Mar 2026 • 14:00</div>
+                                </div>
+
+                                <div class="price-tag" style="font-weight: bold; font-size: 16px;">
+                                    Price: <span id="modalPrice">£52.50</span>
+                                </div>
+                            </div>
+
+                            <!-- Center Crest (Faded) -->
+                            <div style="position: absolute; top: 50%; left: 40%; transform: translate(-50%, -50%); opacity: 0.05; pointer-events: none;">
+                                <img id="modalBgLogo" src="" style="height: 200px; grayscale: 100%;">
+                            </div>
+
+                            <!-- Right Details Column -->
+                            <div style="width: 200px; border-left: 2px solid #eee; padding-left: 20px; display: flex; flex-direction: column; justify-content: space-between;">
+                                <div>
+                                    <!-- Crest Small -->
+                                    <div class="text-center mb-3">
+                                        <img id="modalHomeLogo" src="" style="height: 50px; object-fit: contain;">
+                                    </div>
+                                    
+                                    <div class="detail-row mb-2">
+                                        <small class="text-muted d-block" style="font-size: 10px; text-transform: uppercase;">Seat Location</small>
+                                        <div class="font-weight-bold" id="modalSeat" style="font-size: 13px;">Standard</div>
+                                    </div>
+                                    
+                                    <div class="row no-gutters">
+                                        <div class="col-6 mb-2">
+                                            <small class="text-muted d-block" style="font-size: 10px;">Turnstile</small>
+                                            <div class="font-weight-bold">B</div>
+                                        </div>
+                                        <div class="col-6 mb-2">
+                                            <small class="text-muted d-block" style="font-size: 10px;">Access</small>
+                                            <div class="font-weight-bold">11</div>
+                                        </div>
+                                        <div class="col-6 mb-2">
+                                            <small class="text-muted d-block" style="font-size: 10px;">Row</small>
+                                            <div class="font-weight-bold">G</div>
+                                        </div>
+                                        <div class="col-6 mb-2">
+                                            <small class="text-muted d-block" style="font-size: 10px;">Seat</small>
+                                            <div class="font-weight-bold">42</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer Band -->
+                        <div class="ticket-footer-band" style="padding: 10px 20px; background: #fff; border-top: 1px solid #eee; display: flex; align-items: center; justify-content: space-between;">
+                            <div class="small text-muted" style="font-size: 11px;">
+                                <span class="mr-3">3518617</span>
+                                <span>0844 372 1892</span>
+                                <span class="ml-3">www.isports.com</span>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <!-- Puma Logo -->
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Puma_AG.svg/1200px-Puma_AG.svg.png" style="height: 20px; margin-right: 15px;" alt="Puma">
+                                <!-- Barclays Logo -->
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Barclays_Logo.svg/2560px-Barclays_Logo.svg.png" style="height: 18px;" alt="Barclays">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 text-center">
+                    <button class="btn btn-success font-weight-bold py-2 px-5 shadow-sm rounded-pill" style="min-width: 200px;">
+                        <i class="fas fa-download mr-2"></i> Print Ticket
+                    </button>
+                    <button type="button" class="btn btn-outline-light ml-2 rounded-circle" data-dismiss="modal" aria-label="Close" style="width: 42px; height: 42px;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function viewTicket(dbId, ticketId, homeName, awayName, homeLogo, awayLogo, dateTime, venue, seat, admit) {
+        // Update Text
+        document.getElementById('modalHomeTeam').innerText = homeName;
+        document.getElementById('modalAwayTeam').innerText = awayName;
+        document.getElementById('modalDateTime').innerText = dateTime;
+        document.getElementById('modalSeat').innerText = seat + ' Stand';
+        document.getElementById('modalTicketIdSide').innerText = ticketId;
+
+        // Update Logos
+        const homeImg = document.getElementById('modalHomeLogo');
+        const bgLogo = document.getElementById('modalBgLogo');
+        
+        if (homeLogo) {
+            homeImg.src = homeLogo;
+            bgLogo.src = homeLogo;
+        } else {
+            homeImg.style.display = 'none';
+        }
+
+        // Set download button action
+        const downloadBtn = document.querySelector('#ticketModal .btn-success');
+        downloadBtn.onclick = function() {
+             alert('Printing Ticket #' + ticketId);
+        };
+        
+        $('#ticketModal').modal('show');
+    }
+</script>
+{% endblock %}

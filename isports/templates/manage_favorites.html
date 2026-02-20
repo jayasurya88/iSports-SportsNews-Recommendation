@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Favorites - iSports{% endblock %}
+
+{% block extra_css %}
+<style>
+    .selection-container {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+    .sport-selection, .league-selection {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #f8f9fa;
+    }
+    .sport-tab, .league-tab {
+        padding: 10px 24px;
+        border-radius: 50px;
+        text-decoration: none !important;
+        font-weight: 700;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+        color: #777;
+        border: 2px solid transparent;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .sport-tab:hover, .league-tab:hover {
+        background: #fff;
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+    .sport-tab.active, .league-tab.active {
+        background: var(--primary-color);
+        color: #fff !important;
+        border-color: var(--primary-color);
+        box-shadow: 0 5px 15px rgba(255, 77, 0, 0.2);
+    }
+    .league-tab {
+        padding: 8px 20px;
+        font-size: 13px;
+        background: #fff;
+        border: 1px solid #eee;
+    }
+    .card-select {
+        transition: all 0.3s ease;
+        border: 2px solid #f0f0f0 !important;
+        cursor: pointer;
+        padding: 15px;
+        border-radius: 12px;
+        position: relative;
+    }
+    .card-select:hover {
+        border-color: var(--primary-color) !important;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+    .card-select.is-checked {
+        border-color: var(--primary-color) !important;
+        background: rgba(255, 77, 0, 0.03);
+    }
+    .form-check-input:checked + label .team-info strong {
+        color: var(--primary-color);
+    }
+    .fav-summary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--primary-color);
+        color: #fff;
+        padding: 6px 16px;
+        border-radius: 50px;
+        font-size: 13px;
+        font-weight: 700;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="hero dark-section" style="min-height: 400px; padding-top: 120px; padding-bottom: 60px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="section-title">
+                        <h3 class="wow fadeInUp">My Preferences</h3>
+                        <h1 class="text-anime-style-2" data-cursor="-opaque">Manage Your <span>Favorites</span></h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" style="padding: 60px 0;">
+        <div class="row">
+            <div class="col-lg-3 mb-4">
+                <div class="content-box" style="background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
+                   {% if request.user.profile.profile_picture %}
+                    <img src="{{ request.user.profile.profile_picture.url }}" alt="{{ request.user.username }}" style="width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 15px; object-fit: cover; display: block;">
+                    {% else %}
+                    <div class="user-avatar-placeholder" style="width: 80px; height: 80px; background: var(--accent-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; color: #fff; margin: 0 auto 15px;">
+                        {{ request.user.username|make_list|first|upper }}
+                    </div>
+                    {% endif %}
+                    <h5 class="text-center">{{ request.user.username }}</h5>
+                    <p class="text-center text-muted small">Member since {{ request.user.date_joined|date:"M Y" }}</p>
+                    <hr>
+
+                    {% if total_favorites > 0 %}
+                    <div class="text-center mb-3">
+                        <span class="fav-summary">
+                            <i class="fas fa-star"></i> {{ total_favorites }} Team{{ total_favorites|pluralize }} Followed
+                        </span>
+                    </div>
+                    <hr>
+                    {% endif %}
+
+                    <ul class="nav flex-column nav-pills">
+                        <li class="nav-item"><a class="nav-link" href="{% url 'profile_view' %}" style="color: var(--text-color);">View Profile</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'profile_edit' %}" style="color: var(--text-color);">Edit Profile</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'user_dashboard' %}" style="color: var(--text-color);">Back to Dashboard</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="content-box" style="background: #fff; border-radius: 10px; padding: 40px; box-shadow: 0 5px 20px rgba(0,0,0,0.05);">
+                    <div class="selection-container">
+                        <!-- Step 1: Sport -->
+                        <div>
+                            <h4 class="mb-3" style="color: var(--primary-color);">1. Choose Sport</h4>
+                            <div class="sport-selection">
+                                {% for sport in all_sports %}
+                                <a href="?sport={{ sport }}" class="sport-tab {% if selected_sport == sport %}active{% endif %}">
+                                    {% if sport == 'Football' %}<i class="fas fa-futbol"></i>{% elif sport == 'Cricket' %}<i class="fas fa-baseball-bat-ball"></i>{% else %}<i class="fas fa-trophy"></i>{% endif %}
+                                    {{ sport }}
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Step 2: League -->
+                        {% if leagues %}
+                        <div>
+                            <h4 class="mb-3" style="color: var(--primary-color);">2. Select League</h4>
+                            <div class="league-selection">
+                                {% for league in leagues %}
+                                <a href="?sport={{ selected_sport }}&league={{ league }}" class="league-tab {% if selected_league == league %}active{% endif %}">
+                                    {{ league }}
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Step 3: Teams -->
+                        <div>
+                            <h4 class="mb-4" style="color: var(--primary-color);">3. Pick Your Teams</h4>
+                            <form method="POST">
+                                {% csrf_token %}
+                                <!-- Hidden fields so POST handler knows which league is on screen -->
+                                <input type="hidden" name="current_sport" value="{{ selected_sport }}">
+                                <input type="hidden" name="current_league" value="{{ selected_league }}">
+
+                                <div class="row">
+                                    {% for team in teams %}
+                                    <div class="col-md-4 mb-3">
+                                        <div class="form-check card-select {% if team.id in favorite_team_ids %}is-checked{% endif %}">
+                                            <input class="form-check-input" type="checkbox" name="teams" value="{{ team.id }}" id="team_{{ team.id }}" 
+                                                   style="position: absolute; top: 15px; right: 15px; transform: scale(1.2); cursor: pointer;" 
+                                                   {% if team.id in favorite_team_ids %}checked{% endif %}
+                                                   onchange="this.closest('.card-select').classList.toggle('is-checked', this.checked)">
+                                            <label class="form-check-label d-flex align-items-center" for="team_{{ team.id }}" style="width: 100%; cursor: pointer; padding-right: 25px;">
+                                                <div class="logo-wrapper" style="width: 45px; height: 45px; margin-right: 12px; display: flex; align-items: center; justify-content: center;">
+                                                    {% if team.logo %}
+                                                        <img src="{{ team.logo.url }}" alt="{{ team.name }}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                                    {% else %}
+                                                        <div style="width: 40px; height: 40px; background: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                                            <i class="fa fa-shield text-muted"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="team-info">
+                                                    <strong style="font-size: 14px; display: block;">{{ team.name }}</strong>
+                                                    <span class="text-muted small">{{ team.venue.city|default:"Unknown" }}</span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <div class="col-12 text-center py-5">
+                                        <i class="fas fa-search text-muted mb-3" style="font-size: 40px;"></i>
+                                        <p class="text-muted">No teams found for the selected league.</p>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+
+                                {% if teams %}
+                                <div class="mt-4 pt-3 border-top">
+                                    <button type="submit" class="btn-default btn-highlighted">Save My Favorites</button>
+                                </div>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
