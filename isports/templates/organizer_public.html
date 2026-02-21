@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Organizer Profile - {{ organizer.username }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .organizer-header {
+        background: radial-gradient(circle at top center, #1a202c 0%, #0b0e11 100%);
+        padding: 120px 0 60px;
+        text-align: center;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .org-avatar {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        border: 4px solid var(--accent-color);
+        margin-bottom: 25px;
+        box-shadow: 0 0 30px rgba(196, 34, 33, 0.3);
+        object-fit: cover;
+    }
+
+    .org-placeholder {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent-color), #8a1c1c);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 60px;
+        color: #fff;
+        font-weight: 700;
+        margin: 0 auto 25px;
+        border: 4px solid rgba(255,255,255,0.1);
+    }
+
+    .events-grid { padding: 60px 0; background: #0b0e11; min-height: 400px; }
+    
+    .event-card-compact {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 16px;
+        padding: 20px;
+        transition: all 0.3s;
+        height: 100%;
+    }
+    
+    .event-card-compact:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: var(--accent-color);
+        transform: translateY(-5px);
+    }
+
+    .section-title {
+        font-family: var(--accent-font);
+        color: #fff;
+        font-size: 2.5rem;
+        margin-bottom: 40px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="organizer-header">
+    <div class="container">
+        <div class="fade-in-up">
+            {% if organizer.profile.profile_picture %}
+                <img src="{{ organizer.profile.profile_picture.url }}" alt="{{ organizer.username }}" class="org-avatar">
+            {% else %}
+                <div class="org-placeholder">{{ organizer.username|make_list|first|upper }}</div>
+            {% endif %}
+            
+            <h1 class="text-white" style="font-family: var(--accent-font); font-size: 3.5rem;">{{ organizer.get_full_name|default:organizer.username }}</h1>
+            <p class="text-white-50 lead">Official iSports Event Organizer</p>
+            
+            <div class="d-flex justify-content-center gap-4 mt-4">
+                <div class="text-center">
+                    <h3 class="text-white mb-0" style="font-family: var(--accent-font);">{{ total_events }}</h3>
+                    <small class="text-white-50 text-uppercase" style="font-size: 10px; letter-spacing: 1px;">Events Managed</small>
+                </div>
+                <div class="vr bg-white opacity-25"></div>
+                <div class="text-center">
+                    <h3 class="text-white mb-0" style="font-family: var(--accent-font);">{{ organizer.date_joined|date:"Y" }}</h3>
+                    <small class="text-white-50 text-uppercase" style="font-size: 10px; letter-spacing: 1px;">Member Since</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="events-grid">
+    <div class="container">
+        <h2 class="section-title">Events Portfolio</h2>
+        
+        <div class="row g-4">
+            {% for m in matches %}
+            <div class="col-lg-4 col-md-6">
+                <a href="{% url 'match_detail' m.id %}" class="text-decoration-none">
+                    <div class="event-card-compact">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="badge bg-dark border border-secondary text-uppercase" style="font-size: 10px;">{{ m.league }}</span>
+                            <small class="text-white-50">{{ m.date_time|date:"d M Y" }}</small>
+                        </div>
+                        <h5 class="text-white mb-3">{{ m.home_team.name }} vs {{ m.away_team.name }}</h5>
+                        <div class="d-flex align-items-center text-white-50 small">
+                            <i class="fas fa-map-marker-alt text-danger me-2"></i> {{ m.venue.name }}
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <p class="text-white-50">No events found for this organizer yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -29,6 +29,7 @@
         margin-bottom: 15px;
         background: linear-gradient(to right, #fff, rgba(255,255,255,0.7));
         -webkit-background-clip: text;
+        background-clip: text;
         -webkit-text-fill-color: transparent;
     }
 
@@ -392,7 +393,7 @@
 
             <div class="match-grid mb-5">
                 {% for match in recommended_matches %}
-                <div class="match-card-modern fade-in-up" style="animation-delay: 0.{{ forloop.counter }}s">
+                <div class="match-card-modern fade-in-up" style="animation-delay: 0.{{ forloop.counter }}s;">
                     <div class="match-card-header">
                         <span class="text-uppercase" style="letter-spacing: 1px; font-size: 11px;">{{ match.league }}</span>
                         {% if match.status == 'live' %}
@@ -508,7 +509,7 @@
             <div class="sidebar-widget">
                 <div class="widget-title">
                     <span>Latest News</span>
-                    <a href="#" class="text-white-50 small">View All</a>
+                    <a href="{% url 'latest_news' %}" class="text-white-50 small">View All</a>
                 </div>
                 {% for article in news_articles %}
                 <a href="{% url 'news_detail' article.id %}" class="text-decoration-none">
@@ -520,7 +521,7 @@
                         {% endif %}
                         <div class="news-content">
                             <h5 class="text-truncate-2">{{ article.headline }}</h5>
-                            <div class="news-meta">{{ article.published_at }}</div>
+                            <div class="news-meta">{{ article.published_at|timesince }} ago</div>
                         </div>
                     </div>
                 </a>
@@ -529,6 +530,33 @@
                     <p class="small">No news available.</p>
                 </div>
                 {% endfor %}
+            </div>
+
+            <!-- Trending Polls & Community -->
+            <div class="sidebar-widget">
+                <div class="widget-title">
+                    <span>Trending Discussions</span>
+                    <a href="{% url 'community_list' %}" class="text-white-50 small">Join All</a>
+                </div>
+                <div class="scrollable-widget">
+                    <div class="p-3 mb-3 rounded-4" style="background: rgba(13, 202, 240, 0.05); border: 1px solid rgba(13, 202, 240, 0.1);">
+                        <small class="text-info text-uppercase fw-bold d-block mb-2" style="font-size: 0.6rem;">Match Poll</small>
+                        <h6 class="text-white small mb-3">Who will win the upcoming Derby?</h6>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-info flex-grow-1 py-1 rounded-pill" style="font-size: 10px;">HOME</button>
+                            <button class="btn btn-sm btn-outline-info flex-grow-1 py-1 rounded-pill" style="font-size: 10px;">AWAY</button>
+                        </div>
+                    </div>
+                    
+                    <div class="p-3 rounded-4" style="background: rgba(196, 34, 33, 0.05); border: 1px solid rgba(196, 34, 33, 0.1);">
+                        <small class="text-danger text-uppercase fw-bold d-block mb-2" style="font-size: 0.6rem;">Active Community</small>
+                        <div class="d-flex align-items-center">
+                            <div class="stat-icon me-2" style="width: 30px; height: 30px; font-size: 12px;"><i class="fas fa-users"></i></div>
+                            <span class="text-white small fw-bold">El Clásico Fans Hub</span>
+                        </div>
+                        <a href="{% url 'community_list' %}" class="btn btn-sm btn-danger w-100 mt-2 rounded-pill py-1" style="font-size: 10px;">JOIN DISCUSSION</a>
+                    </div>
+                </div>
             </div>
             
             <!-- Ad/Promo Widget -->

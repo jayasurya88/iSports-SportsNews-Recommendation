@@ -452,7 +452,7 @@
             </div>
 
             <!-- Match Overview -->
-            <div class="glass-card">
+            <div class="glass-card mb-4">
                 <div class="glass-card-header">
                     <h3 class="glass-card-title">Match Overview</h3>
                 </div>
@@ -486,6 +486,95 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Insights & Media -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="glass-card h-100">
+                        <div class="glass-card-header">
+                            <h3 class="glass-card-title">Live Updates</h3>
+                        </div>
+                        {% if match.injury_news or match.alerts.exists %}
+                        <div class="alert-feed">
+                            {% for alert in match.alerts.all %}
+                            <div class="p-3 mb-2 rounded-3" style="background: rgba(255,193,7,0.1); border-left: 3px solid #ffc107;">
+                                <small class="text-warning text-uppercase fw-bold d-block">{{ alert.alert_type }}</small>
+                                <p class="text-white mb-0 small">{{ alert.message }}</p>
+                            </div>
+                            {% endfor %}
+                            {% if match.injury_news %}
+                            <div class="p-3 rounded-3" style="background: rgba(220,53,69,0.1); border-left: 3px solid #dc3545;">
+                                <small class="text-danger text-uppercase fw-bold d-block">Injury Update</small>
+                                <p class="text-white mb-0 small">{{ match.injury_news }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <p class="text-white-50 small">No critical alerts or injury news at this time.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="glass-card h-100">
+                        <div class="glass-card-header">
+                            <h3 class="glass-card-title">Tactical Lineups</h3>
+                        </div>
+                        {% if match.lineups %}
+                        <div class="lineup-content text-white-50 small">
+                            {{ match.lineups|linebreaks }}
+                        </div>
+                        {% else %}
+                        <p class="text-white-50 small">Official lineups will be announced 60 minutes before kickoff.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Highlights -->
+            {% if match.highlights_url %}
+            <div class="glass-card mb-4">
+                <div class="glass-card-header">
+                    <h3 class="glass-card-title">Match Highlights</h3>
+                    <i class="fab fa-youtube text-danger fa-lg"></i>
+                </div>
+                <div class="ratio ratio-16x9 rounded-4 overflow-hidden border border-secondary">
+                    <iframe src="{{ match.highlights_url|cut:'watch?v='|cut:'youtube.com/'|add:'embed/' }}" title="Highlights" allowfullscreen></iframe>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Fan Polls -->
+            {% if polls %}
+            <div class="glass-card mb-4">
+                <div class="glass-card-header">
+                    <h3 class="glass-card-title">Fan Predictions</h3>
+                    <div class="badge bg-danger rounded-pill px-3 py-1 small">Vote Now</div>
+                </div>
+                
+                {% for poll in polls %}
+                <div class="mb-4">
+                    <h6 class="text-white mb-3 fw-bold">{{ poll.question }}</h6>
+                    <form action="{% url 'vote_poll' poll.id %}" method="POST">
+                        {% csrf_token %}
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <button type="submit" name="choice" value="a" class="btn btn-outline-light w-100 py-3 rounded-4 d-flex flex-column align-items-center">
+                                    <span class="small text-white-50 mb-1">{{ poll.option_a }}</span>
+                                    <span class="h4 mb-0 fw-bold">{{ poll.votes_a }}</span>
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button type="submit" name="choice" value="b" class="btn btn-outline-light w-100 py-3 rounded-4 d-flex flex-column align-items-center">
+                                    <span class="small text-white-50 mb-1">{{ poll.option_b }}</span>
+                                    <span class="h4 mb-0 fw-bold">{{ poll.votes_b }}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
 
         <!-- Sidebar -->
@@ -511,6 +600,19 @@
                     <span class="info-label">Status</span>
                     <span class="info-value text-capitalize">{{ match.status }}</span>
                 </div>
+                {% if match.organizer %}
+                <div class="mt-4 p-3 rounded-4 bg-white bg-opacity-5 border border-white border-opacity-10 text-center">
+                    <small class="text-white-50 text-uppercase d-block mb-2" style="font-size: 10px; letter-spacing: 1px;">Organized By</small>
+                    <a href="{% url 'public_organizer_profile' match.organizer.username %}" class="text-white fw-bold text-decoration-none d-flex align-items-center justify-content-center gap-2">
+                        {% if match.organizer.profile.profile_picture %}
+                        <img src="{{ match.organizer.profile.profile_picture.url }}" class="rounded-circle" style="width: 24px; height: 24px; object-fit: cover;">
+                        {% else %}
+                        <i class="fas fa-user-circle text-danger"></i>
+                        {% endif %}
+                        {{ match.organizer.get_full_name|default:match.organizer.username }}
+                    </a>
+                </div>
+                {% endif %}
                 <div class="info-list-item">
                     <span class="info-label">Round</span>
                     <span class="info-value">Regular Season</span>

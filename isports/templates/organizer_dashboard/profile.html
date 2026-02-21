@@ -1,0 +1,204 @@
+{% extends 'organizer_dashboard/base_org.html' %}
+{% load static %}
+
+{% block title %}Organizer Profile - iSports{% endblock %}
+{% block page_title %}ACCOUNT SETTINGS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-4">
+        <!-- Profile Overview Card -->
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+            <div class="card-body text-center p-5">
+                <div class="mb-4 position-relative d-inline-block">
+                    <div class="profile-img-container" style="position: relative;">
+                        {% if request.user.profile.profile_picture %}
+                        <img src="{{ request.user.profile.profile_picture.url }}" id="profile-preview" alt="{{ request.user.username }}" class="rounded-circle border border-primary border-4" style="width: 140px; height: 140px; object-fit: cover;">
+                        {% else %}
+                        <div id="profile-placeholder" class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto" style="width: 140px; height: 140px; font-size: 60px; font-weight: bold;">
+                            {{ request.user.username|make_list|first|upper }}
+                        </div>
+                        <img src="" id="profile-preview" class="rounded-circle border border-primary border-4 d-none" style="width: 140px; height: 140px; object-fit: cover;">
+                        {% endif %}
+                        <label for="id_profile_picture" class="position-absolute bottom-0 end-0 bg-primary text-white p-2 rounded-circle shadow-sm cursor-pointer" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 3px solid #fff;">
+                            <i class="fas fa-camera"></i>
+                        </label>
+                    </div>
+                </div>
+                <h4 class="mb-1">{{ request.user.get_full_name|default:request.user.username }}</h4>
+                <p class="text-muted mb-2"><i class="fas fa-briefcase me-2"></i>Event Organizer</p>
+                <div class="mb-4">
+                    <label for="id_profile_picture" class="btn btn-sm btn-outline-primary rounded-pill px-3">Change Photo</label>
+                </div>
+                
+                <div class="row g-2">
+                    <div class="col-4">
+                        <div class="p-2 bg-light rounded">
+                            <h5 class="mb-0 fw-bold">{{ stats.total_events }}</h5>
+                            <small class="text-muted" style="font-size: 10px;">TOTAL</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 bg-light rounded">
+                            <h5 class="mb-0 fw-bold">{{ stats.active_events }}</h5>
+                            <small class="text-muted" style="font-size: 10px;">ACTIVE</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 bg-light rounded">
+                            <h5 class="mb-0 fw-bold">{{ stats.completed_events }}</h5>
+                            <small class="text-muted" style="font-size: 10px;">DONE</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Info Card -->
+        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="mb-0">Contact Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-envelope text-primary me-3"></i>
+                    <div>
+                        <small class="text-muted d-block">Email Address</small>
+                        <span>{{ request.user.email }}</span>
+                    </div>
+                </div>
+                <div class="mb-3 d-flex align-items-center">
+                    <i class="fas fa-phone text-primary me-3"></i>
+                    <div>
+                        <small class="text-muted d-block">Phone Number</small>
+                        <span>{{ request.user.profile.phone|default:"Not provided" }}</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-calendar-alt text-primary me-3"></i>
+                    <div>
+                        <small class="text-muted d-block">Joined iSports</small>
+                        <span>{{ request.user.date_joined|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <!-- Edit Form Card -->
+        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="mb-0">Update Profile Details</h5>
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <h6 class="text-muted text-uppercase small fw-bold mb-4 border-bottom pb-2">User Information</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Username</label>
+                            {{ user_form.username }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email Address</label>
+                            {{ user_form.email }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">First Name</label>
+                            {{ user_form.first_name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Last Name</label>
+                            {{ user_form.last_name }}
+                        </div>
+                    </div>
+
+                    <h6 class="text-muted text-uppercase small fw-bold mb-4 border-bottom pb-2">Profile Details</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Phone Number</label>
+                            {{ profile_form.phone }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Date of Birth</label>
+                            {{ profile_form.dob }}
+                        </div>
+                        <div class="col-md-12 d-none">
+                            <label class="form-label">Profile Picture</label>
+                            {{ profile_form.profile_picture }}
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-top mt-4">
+                        <button type="submit" class="btn btn-primary px-5 py-2">
+                            <i class="fas fa-check-circle me-2"></i> Save Profile Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="mt-4 p-4 rounded-4 bg-light border border-dashed border-primary text-center">
+            <h6 class="mb-2 fw-bold">Looking to manage your events?</h6>
+            <p class="text-muted small mb-3">Head back to your events list to update scores, lineups, or send alerts.</p>
+            <a href="{% url 'organizer_events_list' %}" class="btn btn-outline-primary btn-sm">Go to My Events</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-control {
+        border-radius: 8px;
+        padding: 10px 15px;
+        border: 1px solid #dee2e6;
+    }
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(11, 14, 17, 0.1);
+    }
+    .btn-primary {
+        background-color: var(--primary-color);
+        border: none;
+        border-radius: 8px;
+    }
+    .btn-primary:hover {
+        background-color: #1a202c;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.getElementById('id_profile_picture').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('profile-preview');
+                const placeholder = document.getElementById('profile-placeholder');
+                
+                preview.src = e.target.result;
+                preview.classList.remove('d-none');
+                if (placeholder) {
+                    placeholder.classList.add('d-none');
+                }
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+{% endblock %}
+

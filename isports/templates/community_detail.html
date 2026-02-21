@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ group.name }} - iSports Community{% endblock %}
+
+{% block extra_css %}
+<style>
+    .community-detail {
+        padding: 120px 0 80px;
+        background: #0b1118;
+        min-height: 100vh;
+    }
+    
+    .chat-box {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 20px;
+        height: 600px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    
+    .chat-header {
+        padding: 20px 30px;
+        background: rgba(255,255,255,0.05);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .chat-messages {
+        flex-grow: 1;
+        padding: 30px;
+        overflow-y: auto;
+    }
+    
+    .message-item {
+        margin-bottom: 25px;
+        max-width: 80%;
+    }
+    
+    .message-content {
+        background: rgba(255,255,255,0.08);
+        padding: 12px 20px;
+        border-radius: 15px;
+        color: #fff;
+    }
+    
+    .message-user {
+        font-weight: 700;
+        font-size: 0.8rem;
+        color: var(--accent-color);
+        margin-bottom: 5px;
+        display: block;
+    }
+    
+    .chat-input {
+        padding: 20px 30px;
+        background: rgba(255,255,255,0.02);
+        border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .chat-input .form-control {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #fff !important;
+        border-radius: 12px 0 0 12px !important;
+        padding: 12px 20px !important;
+        height: auto !important;
+    }
+
+    .chat-input .form-control:focus {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border-color: var(--accent-color) !important;
+        box-shadow: none !important;
+    }
+
+    .chat-input .btn-danger {
+        border-radius: 0 12px 12px 0 !important;
+        padding: 0 25px !important;
+        background-color: var(--accent-color) !important;
+        border: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="community-detail">
+    <div class="container">
+        <div class="row">
+            <!-- Group Sidebar -->
+            <div class="col-lg-4 mb-4">
+                <div class="p-4 rounded-4" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);">
+                    <div class="text-center mb-4">
+                        <div class="p-3 bg-danger bg-opacity-10 rounded-4 d-inline-block mb-3">
+                            <i class="fas fa-shield-alt fa-3x text-danger"></i>
+                        </div>
+                        <h3 class="text-white mb-1">{{ group.name }}</h3>
+                        <p class="text-white-50 small mb-0">{{ group.members.count }} Members joined</p>
+                    </div>
+                    
+                    <p class="text-white-50 small mb-4">{{ group.description }}</p>
+                    
+
+
+                    {% if not is_member %}
+                        {% if join_request %}
+                        <div class="alert alert-warning py-2 text-center small bg-warning bg-opacity-10 border-0 text-white">
+                            <i class="fas fa-clock me-2"></i>Join request pending
+                        </div>
+                        {% else %}
+                        <form method="POST">
+                            {% csrf_token %}
+                            <button type="submit" name="join" class="btn-default w-100 btn-highlighted">
+                                {% if group.require_approval %}REQUEST TO JOIN{% else %}JOIN THIS COMMUNITY{% endif %}
+                            </button>
+                        </form>
+                        {% endif %}
+                    {% else %}
+                    <div class="alert alert-success py-2 text-center small bg-success bg-opacity-10 border-0 text-white">
+                        <i class="fas fa-check-circle me-2"></i>You are a member
+                    </div>
+                    {% endif %}
+
+                    {% if is_creator %}
+                    <div class="mt-4">
+                        <h6 class="text-white small text-uppercase fw-bold border-bottom border-secondary pb-2 mb-3">Governance & Privacy</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-white small opacity-75">Visible to Public</span>
+                            <a href="{% url 'toggle_community_setting' group.id 'public' %}" class="badge {% if group.is_public %}bg-success{% else %}bg-secondary{% endif %} text-decoration-none">
+                                {% if group.is_public %}PUBLIC{% else %}PRIVATE{% endif %}
+                            </a>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-white small opacity-75">Manual Approval</span>
+                            <a href="{% url 'toggle_community_setting' group.id 'approval' %}" class="badge {% if group.require_approval %}bg-danger{% else %}bg-secondary{% endif %} text-decoration-none">
+                                {% if group.require_approval %}ENABLED{% else %}DISABLED{% endif %}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if is_creator and pending_requests %}
+                    <div class="mt-4">
+                        <h6 class="text-white small text-uppercase fw-bold border-bottom border-secondary pb-2 mb-3">Pending Requests</h6>
+                        {% for req in pending_requests %}
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded" style="background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.05);">
+                            <span class="text-white small fw-bold">{{ req.user.username }}</span>
+                            <div class="d-flex gap-1">
+                                <a href="{% url 'process_join_request' req.id 'approve' %}" class="btn btn-sm btn-success p-0" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;" title="Approve">
+                                    <i class="fas fa-check" style="font-size: 0.75rem;"></i>
+                                </a>
+                                <a href="{% url 'process_join_request' req.id 'reject' %}" class="btn btn-sm btn-outline-danger p-0" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;" title="Reject">
+                                    <i class="fas fa-times" style="font-size: 0.75rem;"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% if is_creator and group_members %}
+                    <div class="mt-4">
+                        <h6 class="text-white small text-uppercase fw-bold border-bottom border-secondary pb-2 mb-3">Community Members</h6>
+                        <div style="max-height: 200px; overflow-y: auto;">
+                            {% for member in group_members %}
+                            <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded bg-white bg-opacity-5 me-1">
+                                <span class="text-white small">{{ member.username }}</span>
+                                <a href="{% url 'remove_member' group.id member.id %}" class="text-danger-emphasis hover-text-danger" onclick="return confirm('Are you sure you want to remove this member?')">
+                                    <i class="fas fa-trash-alt" style="font-size: 0.75rem;"></i>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Discussion Hub -->
+            <div class="col-lg-8">
+                <div class="chat-box fade-in-up">
+                    <div class="chat-header d-flex justify-content-between align-items-center">
+                        <h5 class="text-white mb-0">Discussion Hub</h5>
+                        <div class="badge bg-success bg-opacity-25 text-success">Live Activity</div>
+                    </div>
+                    
+                    <div class="chat-messages">
+                        {% if forum_messages %}
+                            {% for msg in forum_messages %}
+                            <div class="message-item {% if msg.user == request.user %}ms-auto text-end{% endif %}" style="max-width: 80%;">
+                                <span class="message-user {% if msg.user == request.user %}text-info{% endif %}">{{ msg.user.username }}</span>
+                                <div class="message-content" {% if msg.user == request.user %}style="background: rgba(13, 202, 240, 0.1);"{% endif %}>
+                                    {{ msg.content }}
+                                </div>
+                                <small class="text-white-50" style="font-size: 0.6rem;">{{ msg.created_at|timesince }} ago</small>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-5">
+                                {% if not group.is_public and not is_member %}
+                                    <div class="mb-3"><i class="fas fa-lock fa-3x text-white-50"></i></div>
+                                    <h5 class="text-white-50">Private Community</h5>
+                                    <p class="small text-muted">Join this group to view conversation history.</p>
+                                {% else %}
+                                    <h5 class="text-white-50">No messages yet.</h5>
+                                    <p class="small text-muted">Start the conversation by sending a message below!</p>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="chat-input">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="input-group">
+                                <input type="text" name="content" class="form-control text-white" placeholder="Type a message..." {% if not is_member %}disabled{% endif %} required>
+                                <button class="btn btn-danger" type="submit" name="send_message" {% if not is_member %}disabled{% endif %}><i class="fas fa-paper-plane"></i></button>
+                            </div>
+                        </form>
+                        {% if not is_member %}
+                        <small class="text-danger-emphasis mt-2 d-block">* Membership required to send messages</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

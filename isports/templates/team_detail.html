@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ team.name }} | Official Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Theme integration enhancements */
+    .page-team-single {
+        background-color: var(--primary-color);
+        color: var(--white-color);
+        position: relative;
+        z-index: 1;
+        overflow: hidden;
+        display: block;
+        width: 100%;
+        clear: both;
+        padding-top: 100px;
+        padding-bottom: 100px;
+    }
+    
+    .club-logo-card {
+        padding: 40px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--dark-divider-color);
+        border-radius: 20px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    
+    .club-logo-card img {
+        max-width: 160px;
+        height: auto;
+    }
+
+    .club-logo-card h2 {
+        color: var(--white-color);
+    }
+    
+    .follow-btn-wrapper {
+        padding: 30px;
+        border-top: 1px solid var(--dark-divider-color);
+    }
+    
+    .team-squad-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+        margin-top: 30px;
+    }
+    
+    .player-card-nav {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--dark-divider-color);
+        border-radius: 15px;
+        padding: 15px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: all 0.3s ease;
+        text-decoration: none !important;
+    }
+    
+    .player-card-nav:hover {
+        border-color: var(--accent-color);
+        background: rgba(255,255,255,0.07);
+        transform: translateX(5px);
+    }
+    
+    .player-img-nav {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: #121518;
+    }
+    
+    .player-info-nav h4 {
+        font-size: 16px;
+        margin-bottom: 2px;
+        color: var(--white-color);
+    }
+    
+    .player-info-nav p {
+        font-size: 12px;
+        margin-bottom: 0;
+        text-transform: uppercase;
+        color: var(--text-color);
+    }
+
+    .section-title h2 {
+        color: var(--white-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header Start -->
+<div class="page-header dark-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <!-- Page Header Box Start -->
+                <div class="page-header-box">
+                    <h1 class="text-anime-style-2" data-cursor="-opaque">{{ team.name }}</h1>
+                    <ol class="breadcrumb wow fadeInUp">
+                        <li class="breadcrumb-item"><a href="{% url 'index' %}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'events_list' %}">Teams</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ team.name }}</li>
+                    </ol>
+                </div>
+                <!-- Page Header Box End -->
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Page Header End -->
+
+<!-- Team Single Page Start -->
+<div class="page-team-single">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4">
+                <!-- Team Sidebar Start -->
+                <div class="team-sidebar">
+                    <!-- Club Logo Box -->
+                    <div class="club-logo-card wow fadeInUp">
+                        {% if team.logo %}
+                            <img src="{{ team.logo.url }}" alt="{{ team.name }}">
+                        {% else %}
+                            <i class="fas fa-shield-alt fa-5x text-secondary"></i>
+                        {% endif %}
+                        <h2 class="mt-4">{{ team.name }}</h2>
+                        <p class="text-muted">{{ team.league }}</p>
+                    </div>
+
+                    <!-- Club Stats Sidebar -->
+                    <div class="team-sidebar-category-box wow fadeInUp" data-wow-delay="0.2s">
+                        <div class="team-sidebar-category-list">
+                            <h3>Club Information</h3>
+                            <ul>
+                                <li>Founded: <span>{{ team.established_year|default:"1899" }}</span></li>
+                                <li>Sport: <span>{{ team.sport }}</span></li>
+                                <li>Venue: <span>{{ team.venue.name }}</span></li>
+                                <li>City: <span>{{ team.venue.city|default:"London" }}</span></li>
+                                <li>Capacity: <span>{{ team.venue.capacity|default:"45,000" }}</span></li>
+                            </ul>
+                            
+                            <div class="follow-btn-wrapper">
+                                <form method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="toggle_follow" value="1">
+                                    {% if is_following %}
+                                        <button type="submit" class="btn-default btn-highlighted w-100" style="background-color: transparent; border: 2px solid var(--accent-color); color: var(--accent-color) !important;">
+                                            <i class="fas fa-check me-2"></i> Following
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" class="btn-default btn-highlighted w-100">
+                                            <i class="fas fa-plus me-2"></i> Follow Club
+                                        </button>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Team Sidebar End -->
+            </div>
+
+            <div class="col-lg-8">
+                <!-- Team Single Content Start -->
+                <div class="team-single-content">
+                    <div class="team-member-about wow fadeInUp">
+                        <div class="section-title">		
+                            <h2>About the Club</h2>
+                        </div>
+                        <p>{{ team.description|default:"iSports provides deep insights into world-class sports organizations. This club represents a legacy of passion, community, and excellence on the field." }}</p>
+                    </div>
+
+                    <!-- Recent Fixtures as About Items -->
+                    <div class="team-member-expertise wow fadeInUp" data-wow-delay="0.2s">
+                        <div class="section-title">		
+                            <h2>Recent Matches</h2>
+                        </div>
+                        <div class="team-about-list">
+                            {% for match in recent_matches %}
+                            <div class="team-about-item">
+                                <h3 class="mb-1">vs {% if match.home_team.id == team.id %}{{ match.away_team.name }}{% else %}{{ match.home_team.name }}{% endif %}</h3>
+                                <p class="small opacity-75">{{ match.date_time|date:"F d, Y" }}</p>
+                                <div class="mt-2 fw-bold" style="font-size: 1.5rem; letter-spacing: 2px;">
+                                    {{ match.home_score }} - {{ match.away_score }}
+                                </div>
+                                <p class="small mt-1">{% if match.home_team.id == team.id %}Home Match{% else %}Away Match{% endif %}</p>
+                            </div>
+                            {% empty %}
+                            <p>No recent match data available.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Squad List -->
+                    <div class="team-member-info wow fadeInUp" data-wow-delay="0.4s">
+                        <div class="section-title">		
+                            <h2>Active Roster</h2>
+                        </div>
+                        <div class="team-squad-grid">
+                            {% for player in team.players.all %}
+                            <a href="{% url 'player_detail' player.id %}" class="player-card-nav">
+                                <div class="player-img-nav">
+                                    {% if player.photo_url %}
+                                        <img src="{{ player.photo_url }}" class="w-100 h-100 object-fit-cover" alt="">
+                                    {% else %}
+                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center"><i class="fas fa-user text-muted"></i></div>
+                                    {% endif %}
+                                </div>
+                                <div class="player-info-nav">
+                                    <h4>{{ player.name }}</h4>
+                                    <p>{{ player.position }}</p>
+                                </div>
+                                <i class="fas fa-chevron-right ms-auto text-muted small"></i>
+                            </a>
+                            {% empty %}
+                            <p>No player data available for this season.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <!-- Team Single Content End -->
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Team Single Page End -->
+{% endblock %}

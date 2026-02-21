@@ -16,7 +16,7 @@
 	<!-- Google Fonts Css-->
 	<link rel="preconnect" href="https://fonts.googleapis.com/">
     <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Manrope:wght@200..800&amp;family=Great+Vibes&amp;display=swap" rel="stylesheet">
 	<!-- Bootstrap Css -->
 	<link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
 	<!-- SlickNav Css -->
@@ -52,7 +52,7 @@
 				<div class="container">
 					<!-- Logo Start -->
 					<a class="navbar-brand" href="{% url 'index' %}">
-						<img src="{% static 'images/logo.svg' %}?v=4" alt="Logo">
+						<span style="font-family: 'Great Vibes', cursive; font-size: 2.5rem; color: #fff; font-weight: normal; letter-spacing: 1px;">iSports</span>
 					</a>
 					<!-- Logo End -->
 
@@ -102,6 +102,20 @@
                             <h3 class="wow fadeInUp">Welcome Back</h3>
                             <h2 class="text-anime-style-2" data-cursor="-opaque">Login to <span>iSports</span></h2>
                         </div>
+                        
+                        {% if messages %}
+                        <div class="messages mb-4 wow fadeInUp">
+                            {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-0 rounded-4 p-3 shadow-sm" role="alert" style="background: rgba(220, 53, 69, 0.1); border-left: 4px solid #dc3545 !important; color: #fff;">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-exclamation-circle me-2 text-danger"></i>
+                                    <span style="font-family: var(--accent-font); letter-spacing: 0.5px;">{{ message }}</span>
+                                </div>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.8rem;"></button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                         
                         <form action="#" method="POST" data-toggle="validator" class="wow fadeInUp" data-wow-delay="0.2s">
                             {% csrf_token %}
@@ -165,7 +179,7 @@
                         <!-- About Footer Start -->
                         <div class="about-footer">
                             <div class="footer-logo">
-                                <img src="{% static 'images/logo.svg' %}?v=4" alt="">
+                                <span style="font-family: 'Great Vibes', cursive; font-size: 2.5rem; color: #fff; font-weight: normal; letter-spacing: 1px;">iSports</span>
                             </div>
                             <div class="about-footer-content">
                                 <p>iSports is the ultimate platform for sports enthusiasts. Join us to experience the game like never before, from booking tickets to predicting outcomes.</p>
@@ -303,7 +317,25 @@
     <script src="{% static 'js/jquery.mb.YTPlayer.min.js' %}"></script>
     <!-- Wow js file -->
     <script src="{% static 'js/wow.min.js' %}"></script>
-    <!-- Main Custom js file -->
-    <script src="{% static 'js/function.js' %}"></script>
+    <script>
+        // Auto-dismiss alerts after 3 seconds
+        window.setTimeout(function() {
+            $(".alert").fadeTo(500, 0).slideUp(500, function(){
+                $(this).remove(); 
+            });
+        }, 3000);
+
+        // Force hide preloader if it gets stuck
+        $(window).on('load', function() {
+            setTimeout(function() {
+                $('.preloader').fadeOut('slow');
+            }, 500);
+        });
+
+        // Backup for preloader
+        setTimeout(function() {
+            $('.preloader').fadeOut('slow');
+        }, 2000);
+    </script>
 </body>
 </html>

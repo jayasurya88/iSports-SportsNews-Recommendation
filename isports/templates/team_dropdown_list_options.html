@@ -1,0 +1,4 @@
+<option value="">-- Select an Associated Team --</option>
+{% for team in teams %}
+<option value="{{ team.pk }}">{{ team.name }}</option>
+{% endfor %}

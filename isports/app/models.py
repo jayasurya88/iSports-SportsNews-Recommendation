@@ -72,10 +72,33 @@ class CommunityGroup(models.Model):
     league = models.CharField(max_length=100, blank=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_communities')
     members = models.ManyToManyField(User, related_name='joined_communities')
+    
+    # New Settings
+    is_public = models.BooleanField(default=True, help_text="If false, only members can see chats")
+    require_approval = models.BooleanField(default=False, help_text="If true, users must request to join")
+    
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
+
+class CommunityMessage(models.Model):
+    group = models.ForeignKey(CommunityGroup, on_delete=models.CASCADE, related_name='messages')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} in {self.group.name}"
+
+class CommunityJoinRequest(models.Model):
+    group = models.ForeignKey(CommunityGroup, on_delete=models.CASCADE, related_name='join_requests')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')], default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} request for {self.group.name}"
 
 class Poll(models.Model):
     match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='polls')
@@ -125,9 +148,11 @@ class UserProfile(models.Model):
     ]
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='user')
     needs_password_change = models.BooleanField(default=False)
+    onboarding_completed = models.BooleanField(default=False)
     view_password = models.CharField(max_length=128, blank=True, null=True) # For admin visibility (Dev only)
     
     # Preference Engine Data
+    interests = models.TextField(blank=True, help_text="Comma separated sports interests")
     favorite_teams = models.ManyToManyField(Team, blank=True, related_name='fans')
     
     # Notification Settings

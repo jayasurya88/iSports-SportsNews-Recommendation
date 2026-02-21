@@ -6,6 +6,7 @@ import socket
 import time
 from datetime import datetime, timedelta
 from app.models import Team, Match, Venue, NewsArticle, Player
+from django.core.files.base import ContentFile
 
 # Fix SSL errors
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -14,25 +15,19 @@ socket.setdefaulttimeout(30)
 # Base path mapped in LEAGUES
 ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports'
 
-# Leagues to fetch — real fixture data, real teams
+# Cricket specific fetch
 LEAGUES = [
-    {'path': 'soccer/eng.1',      'name': 'English Premier League', 'sport': 'Football'},
-    {'path': 'soccer/esp.1',      'name': 'Spanish La Liga',        'sport': 'Football'},
-    {'path': 'basketball/nba',    'name': 'NBA',                    'sport': 'Basketball'},
-    {'path': 'football/nfl',      'name': 'NFL',                    'sport': 'American Football'},
-    {'path': 'soccer/ger.1',      'name': 'German Bundesliga',      'sport': 'Football'},
-    {'path': 'cricket/8039',      'name': 'International Cricket',   'sport': 'Cricket'},
+    {'path': 'cricket/8039', 'name': 'International Cricket', 'sport': 'Cricket'},
 ]
 
 HEADERS = {'User-Agent': 'iSports-Student-Project/1.0'}
 
 class Command(BaseCommand):
-    help = 'Seeds database with real teams & fixtures from ESPN free API.'
+    help = 'Seeds database with real teams & fixtures for cricket from ESPN api.'
 
     def add_arguments(self, parser):
         parser.add_argument('--fresh', action='store_true', help='Wipe database before seeding')
         parser.add_argument('--no-logos', action='store_true', help='Skip downloading team logos')
-        parser.add_argument('--quick', action='store_true', help='Only seed English Premier League')
         parser.add_argument('--news-only', action='store_true', help='Only fetch news')
         parser.add_argument('--rosters-only', action='store_true', help='Only fetch rosters')
 
@@ -50,7 +45,6 @@ class Command(BaseCommand):
         return None
 
     def _download_logo(self, team_obj, logo_url):
-        # ... existing logo code ...
         if not logo_url or team_obj.logo:
             return
         try:
@@ -69,13 +63,53 @@ class Command(BaseCommand):
         
         # Fallback for cricket or other leagues where ESPN roster API is 400 Bad Request
         if not athletes:
-            athletes = [
-                {'fullName': f'{team.name} Player 1', 'position': {'displayName': 'Forward/Batsman'}},
-                {'fullName': f'{team.name} Player 2', 'position': {'displayName': 'Midfielder/All-Rounder'}},
-                {'fullName': f'{team.name} Player 3', 'position': {'displayName': 'Defender/Bowler'}},
-                {'fullName': f'{team.name} Player 4', 'position': {'displayName': 'Goalkeeper/Keeper'}},
-                {'fullName': f'{team.name} Captain', 'position': {'displayName': 'Captain'}},
-            ]
+            REAL_ROSTERS = {
+                'India': [
+                    {'fullName': 'Rohit Sharma', 'position': {'displayName': 'Batsman'}},
+                    {'fullName': 'Virat Kohli', 'position': {'displayName': 'Batsman'}},
+                    {'fullName': 'Shubman Gill', 'position': {'displayName': 'Batsman'}},
+                    {'fullName': 'Suryakumar Yadav', 'position': {'displayName': 'Batsman'}},
+                    {'fullName': 'KL Rahul', 'position': {'displayName': 'Wicketkeeper Batsman'}},
+                    {'fullName': 'Hardik Pandya', 'position': {'displayName': 'All-Rounder'}},
+                    {'fullName': 'Ravindra Jadeja', 'position': {'displayName': 'All-Rounder'}},
+                    {'fullName': 'Jasprit Bumrah', 'position': {'displayName': 'Bowler'}},
+                    {'fullName': 'Mohammed Siraj', 'position': {'displayName': 'Bowler'}},
+                    {'fullName': 'Kuldeep Yadav', 'position': {'displayName': 'Bowler'}}
+                ],
+                'Australia': [
+                    {'fullName': 'Pat Cummins', 'position': {'displayName': 'Bowler'}},
+                    {'fullName': 'Steve Smith', 'position': {'displayName': 'Batsman'}},
+                    {'fullName': 'Travis Head', 'position': {'displayName': 'Batsman'}},
+                    {'fullName': 'Marnus Labuschagne', 'position': {'displayName': 'Batsman'}},
+                    {'fullName': 'Glenn Maxwell', 'position': {'displayName': 'All-Rounder'}},
+                    {'fullName': 'Mitchell Starc', 'position': {'displayName': 'Bowler'}},
+                    {'fullName': 'Josh Hazlewood', 'position': {'displayName': 'Bowler'}},
+                    {'fullName': 'Alex Carey', 'position': {'displayName': 'Wicketkeeper'}},
+                    {'fullName': 'Cameron Green', 'position': {'displayName': 'All-Rounder'}},
+                    {'fullName': 'Adam Zampa', 'position': {'displayName': 'Bowler'}}
+                ],
+                'England': [
+                    {'fullName': 'Jos Buttler', 'position': {'displayName': 'Wicketkeeper'}},
+                    {'fullName': 'Joe Root', 'position': {'displayName': 'Batsman'}},
+                    {'fullName': 'Jonny Bairstow', 'position': {'displayName': 'Wicketkeeper'}},
+                    {'fullName': 'Ben Stokes', 'position': {'displayName': 'All-Rounder'}},
+                    {'fullName': 'Moeen Ali', 'position': {'displayName': 'All-Rounder'}},
+                    {'fullName': 'Adil Rashid', 'position': {'displayName': 'Bowler'}},
+                    {'fullName': 'Mark Wood', 'position': {'displayName': 'Bowler'}},
+                    {'fullName': 'Sam Curran', 'position': {'displayName': 'All-Rounder'}},
+                    {'fullName': 'Harry Brook', 'position': {'displayName': 'Batsman'}},
+                    {'fullName': 'Jofra Archer', 'position': {'displayName': 'Bowler'}}
+                ]
+            }
+
+            # Attempt to use real names if dictionary matches, otherwise build a generic string
+            athletes = REAL_ROSTERS.get(team.name, [
+                {'fullName': f'{team.name} Top Order Batsman', 'position': {'displayName': 'Batsman'}},
+                {'fullName': f'{team.name} Mid-Order Batsman', 'position': {'displayName': 'Batsman'}},
+                {'fullName': f'{team.name} Pacer', 'position': {'displayName': 'Bowler'}},
+                {'fullName': f'{team.name} Spinner', 'position': {'displayName': 'Bowler'}},
+                {'fullName': f'{team.name} Captain', 'position': {'displayName': 'All-Rounder'}},
+            ])
 
         # Clear existing players to avoid duplicates/stale data
         Player.objects.filter(team=team).delete()
@@ -158,26 +192,22 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         is_fresh = options.get('fresh')
         skip_logos = options.get('no_logos')
-        is_quick = options.get('quick')
         news_only = options.get('news_only')
         rosters_only = options.get('rosters_only')
 
         if is_fresh:
             self.stdout.write(self.style.WARNING('Cleaning up existing sports data...'))
-            Match.objects.all().delete()
-            Player.objects.all().delete()
-            Team.objects.all().delete()
-            Venue.objects.all().delete()
-            self.stdout.write(self.style.SUCCESS('Cleanup complete.'))
+            Match.objects.filter(league='International Cricket').delete()
+            Player.objects.filter(team__league='International Cricket').delete()
+            Team.objects.filter(league='International Cricket').delete()
+            self.stdout.write(self.style.SUCCESS('Cleanup complete for cricket data.'))
 
         # Date range: today → +30 days
         today = datetime.now()
         date_from = today.strftime('%Y%m%d')
         date_to = (today + timedelta(days=30)).strftime('%Y%m%d')
 
-        leagues_to_process = LEAGUES[:1] if is_quick else LEAGUES
-
-        for league_info in leagues_to_process:
+        for league_info in LEAGUES:
             slug = league_info['path']
             league_name = league_info['name']
             sport_name = league_info['sport']
@@ -202,10 +232,6 @@ class Command(BaseCommand):
             if not api_teams:
                 # Fallback to scoreboard endpoint if /teams endpoint is empty (e.g. Cricket)
                 sb_url = f'{ESPN_BASE}/{slug}/scoreboard'
-                if sport_name != 'Cricket':
-                    date_from_sb = datetime.now().strftime('%Y%m%d')
-                    date_to_sb = (datetime.now() + timedelta(days=60)).strftime('%Y%m%d')
-                    sb_url += f'?dates={date_from_sb}-{date_to_sb}'
                 sb_data = self._api_get(sb_url)
                 if sb_data:
                     for event in sb_data.get('events', []):
@@ -260,15 +286,12 @@ class Command(BaseCommand):
             # 2. Fetch fixtures
             self.stdout.write(f'  Fetching fixtures...')
             fixtures_url = f'{ESPN_BASE}/{slug}/scoreboard'
-            if sport_name != 'Cricket':
-                fixtures_url += f'?dates={date_from}-{date_to}'
             fixtures_data = self._api_get(fixtures_url)
             
             events = fixtures_data.get('events', []) if fixtures_data else []
             count_matches = 0
             
             for event in events:
-                # ... (Simplified logic for brevity, keeping core structure) ...
                 comp = event.get('competitions', [{}])[0]
                 competitors = comp.get('competitors', [])
                 if len(competitors) < 2: continue

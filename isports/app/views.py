@@ -3,12 +3,13 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from .models import Team, Match, Venue, UserProfile, NewsArticle, Feedback, Player, Poll, Alert
-from .forms import UserUpdateForm, ProfileUpdateForm, FeedbackForm
+from .models import Team, Match, Venue, UserProfile, NewsArticle, Feedback, Player, Poll, Alert, CommunityGroup, CommunityMessage, Ticket
+from .forms import UserUpdateForm, ProfileUpdateForm, FeedbackForm, CommunityGroupForm
 from django.db.models import Q
 import json
 import time
 import operator
+import urllib.request
 from datetime import datetime
 from functools import reduce
 from django.core.cache import cache
@@ -19,6 +20,64 @@ def is_admin(user):
 
 def is_organizer(user):
     return user.is_authenticated and hasattr(user, 'profile') and user.profile.role == 'organizer'
+
+# Helper for News Syncing
+def sync_news_for_leagues(leagues_list):
+    """
+    Optional live sync for news articles from ESPN public API.
+    leagues_list: list of league names or slugs
+    """
+    # Map common league names to ESPN slugs
+    LEAGUE_MAP = {
+        'English Premier League': 'eng.1',
+        'Spanish La Liga': 'esp.1',
+        'German Bundesliga': 'ger.1',
+        'Italian Serie A': 'ita.1',
+        'French Ligue 1': 'fra.1',
+        'Indian Super League': 'ind.1'
+    }
+    
+    headers = {'User-Agent': 'iSports/1.0'}
+    
+    for league_name in leagues_list:
+        slug = LEAGUE_MAP.get(league_name)
+        if not slug: continue
+        
+        # Don't sync more than once an hour per league
+        cache_key = f'news_sync_{slug}'
+        if cache.get(cache_key): continue
+        
+        try:
+            url = f'https://site.api.espn.com/apis/site/v2/sports/soccer/{slug}/news'
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                data = json.loads(resp.read())
+                articles = data.get('articles', [])
+                for art in articles:
+                    headline = art.get('headline', '')
+                    if not headline: continue
+                    
+                    published_str = art.get('published', '')
+                    published_dt = None
+                    if published_str:
+                        from django.utils.dateparse import parse_datetime
+                        published_dt = parse_datetime(published_str)
+
+                    NewsArticle.objects.update_or_create(
+                        headline=headline[:500],
+                        defaults={
+                            'summary': art.get('description', ''),
+                            'content': art.get('story', ''),
+                            'image_url': art.get('images', [{}])[0].get('url', '') if art.get('images') else '',
+                            'source_url': art.get('links', {}).get('web', {}).get('href', ''),
+                            'published_at': published_dt,
+                            'category': league_name
+                        }
+                    )
+            # Set cache to avoid spamming API
+            cache.set(cache_key, True, 3600)
+        except Exception as e:
+            print(f"Error syncing news: {e}")
 
 # Create your views here.
 def index(request):
@@ -53,6 +112,8 @@ def login_view(request):
             elif profile.role == 'organizer':
                 return redirect('organizer_dashboard')
             else:
+                if not profile.onboarding_completed:
+                    return redirect('user_onboarding')
                 return redirect('user_dashboard')
         else:
             messages.error(request, "Invalid username or password.")
@@ -72,6 +133,10 @@ def register_view(request):
 
         if password != confirm_password:
             messages.error(request, "Passwords do not match.")
+            return render(request, 'register.html')
+            
+        if phone and (not phone.isdigit() or len(phone) != 10):
+            messages.error(request, "Phone number must be exactly 10 digits.")
             return render(request, 'register.html')
         
         if User.objects.filter(username=username).exists():
@@ -100,13 +165,50 @@ def register_view(request):
 
             login(request, user)
             messages.success(request, "Registration successful! Welcome to iSports.")
-            return redirect('user_dashboard')
+            return redirect('user_onboarding')
 
         except Exception as e:
             messages.error(request, f"An error occurred during registration: {e}")
             return render(request, 'register.html')
 
     return render(request, 'register.html')
+
+@login_required
+def user_onboarding(request):
+    profile = request.user.profile
+    
+    if profile.onboarding_completed:
+        return redirect('user_dashboard')
+        
+    if request.method == 'POST':
+        selected_sports = request.POST.getlist('sports')
+        selected_teams = request.POST.getlist('favorite_teams')
+        
+        profile.interests = ",".join(selected_sports)
+        profile.onboarding_completed = True
+        profile.save()
+        
+        # Add favorite teams
+        profile.favorite_teams.set(selected_teams)
+        
+        messages.success(request, "Setup complete! Enjoy your personalized experience.")
+        return redirect('user_dashboard')
+        
+    # GET: Fetch sports, leagues, and teams
+    all_sports = Team.objects.exclude(sport__isnull=True).exclude(sport='').values_list('sport', flat=True).distinct().order_by('sport')
+    all_teams = Team.objects.all().order_by('name')
+    
+    # Map leagues to sports for filtering
+    leagues_by_sport = {}
+    for sport in all_sports:
+        leagues = Team.objects.filter(sport=sport).values_list('league', flat=True).distinct().order_by('league')
+        leagues_by_sport[sport] = list(leagues)
+    
+    return render(request, 'onboarding.html', {
+        'all_sports': all_sports,
+        'all_teams': all_teams,
+        'leagues_by_sport': leagues_by_sport
+    })
 
 def logout_view(request):
     logout(request)
@@ -253,20 +355,26 @@ def system_settings(request):
     Displays API details and provides data management options.
     """
     api_info = {
-        'base_url': 'https://site.api.espn.com/apis/site/v2/sports/soccer',
+        'base_url': 'https://site.api.espn.com/apis/site/v2/sports',
         'endpoints': [
-            {'name': 'Teams List', 'url': '/[LEAGUE]/teams', 'purpose': 'Fetches all clubs, logos, and stadium info.'},
-            {'name': 'Scoreboard', 'url': '/[LEAGUE]/scoreboard', 'purpose': 'Fetches fixtures, live scores, and match results.'},
-            {'name': 'News Articles', 'url': '/[LEAGUE]/news', 'purpose': 'Fetches latest headlines and media content.'},
+            {'name': 'Teams List', 'url': '/[SPORT]/[LEAGUE]/teams', 'purpose': 'Fetches all clubs, logos, and stadium info.'},
+            {'name': 'Scoreboard', 'url': '/[SPORT]/[LEAGUE]/scoreboard', 'purpose': 'Fetches fixtures, live scores, and match results.'},
+            {'name': 'News Articles', 'url': '/[SPORT]/[LEAGUE]/news', 'purpose': 'Fetches latest headlines and media content.'},
         ],
         'leagues': [
-            'English Premier League (eng.1)',
-            'Spanish La Liga (esp.1)',
-            'German Bundesliga (ger.1)',
-            'Italian Serie A (ita.1)',
-            'French Ligue 1 (fra.1)',
-            'Indian Super League (ind.1)'
+            'English Premier League (Football)',
+            'Spanish La Liga (Football)',
+            'NBA (Basketball)',
+            'NFL (American Football)',
+            'International Cricket (Cricket)'
         ],
+        'api_limits': {
+            'rate_limit': 'Unlimited (Public Access)',
+            'request_quota': 'No Quota Restrictions',
+            'auth_method': 'Standard HTTP (No Key Required)',
+            'data_residency': 'Daily Sync (Local Cache)',
+            'usage_percent': 12 # Mock percentage for UI richness
+        },
         'stats': {
             'teams': Team.objects.count(),
             'matches': Match.objects.count(),
@@ -307,6 +415,54 @@ def sync_sports_data(request):
     thread.start()
     
     messages.success(request, "Data synchronization started in the background. Latest sports data will be updated shortly.")
+    return redirect('system_settings')
+
+@login_required
+@user_passes_test(is_admin)
+def sync_sports_rosters(request):
+    """
+    Triggers the management command to fetch latest roster data separately.
+    """
+    from django.core.management import call_command
+    import threading
+
+    def d_sync():
+        try:
+            cache.set('sports_sync_running', True, 300)
+            call_command('seed_sports_data', rosters_only=True)
+        except Exception as e:
+            print(f"Sync Roster Error: {e}")
+        finally:
+            cache.delete('sports_sync_running')
+
+    thread = threading.Thread(target=d_sync)
+    thread.start()
+    
+    messages.success(request, "Roster synchronization started. Teams' squads will be updated shortly.")
+    return redirect('system_settings')
+
+@login_required
+@user_passes_test(is_admin)
+def sync_sports_news(request):
+    """
+    Triggers the management command to fetch latest news data separately.
+    """
+    from django.core.management import call_command
+    import threading
+
+    def d_sync():
+        try:
+            cache.set('sports_sync_running', True, 300)
+            call_command('seed_sports_data', news_only=True)
+        except Exception as e:
+            print(f"Sync News Error: {e}")
+        finally:
+            cache.delete('sports_sync_running')
+
+    thread = threading.Thread(target=d_sync)
+    thread.start()
+    
+    messages.success(request, "News synchronization started. Latest articles will be available shortly.")
     return redirect('system_settings')
 
 @login_required
@@ -517,6 +673,41 @@ def organizer_polls(request, match_id):
     return render(request, 'organizer_dashboard/events/polls.html', {'match': match, 'polls': polls})
 
 @login_required
+@user_passes_test(is_organizer)
+def organizer_profile(request):
+    """
+    Dedicated profile page for organizers inside the dashboard.
+    """
+    profile = request.user.profile
+    if request.method == 'POST':
+        user_form = UserUpdateForm(request.POST, instance=request.user)
+        profile_form = ProfileUpdateForm(request.POST, request.FILES, instance=profile)
+
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('organizer_profile')
+    else:
+        user_form = UserUpdateForm(instance=request.user)
+        profile_form = ProfileUpdateForm(instance=profile)
+
+    # Stats for profile overview
+    organized_matches = Match.objects.filter(organizer=request.user)
+    stats = {
+        'total_events': organized_matches.count(),
+        'active_events': organized_matches.filter(status__in=['scheduled', 'live']).count(),
+        'completed_events': organized_matches.filter(status='finished').count(),
+    }
+
+    return render(request, 'organizer_dashboard/profile.html', {
+        'user_form': user_form,
+        'profile_form': profile_form,
+        'stats': stats
+    })
+
+
+@login_required
 def change_password_required(request):
     if request.method == 'POST':
         new_pass = request.POST.get('new_password')
@@ -562,6 +753,10 @@ def user_dashboard(request):
       4. Fallback:  Trending upcoming matches (no favorites set)
     """
     profile, created = UserProfile.objects.get_or_create(user=request.user)
+    
+    if profile.role == 'user' and not profile.onboarding_completed:
+        return redirect('user_onboarding')
+        
     favorite_teams = profile.favorite_teams.all()
     
     recommended_matches = []
@@ -678,11 +873,14 @@ def match_detail(request, match_id):
         date_time__lt=match.date_time
     ).order_by('-date_time')[:5]
 
+    polls = match.polls.all()
+    
     context = {
         'match': match,
         'home_recent': home_recent,
         'away_recent': away_recent,
         'is_live': match.status == 'live',
+        'polls': polls,
     }
     return render(request, 'match_detail.html', context)
 
@@ -743,6 +941,29 @@ def profile_edit(request):
         'profile_form': profile_form
     }
     return render(request, 'profile_edit.html', context)
+
+@login_required
+def public_organizer_profile(request, username):
+    """
+    Publicly accessible profile page for organizers.
+    Shows their bio and all events they are managing.
+    """
+    organizer = get_object_or_404(User, username=username)
+    
+    # Check if they are actually an organizer
+    if not hasattr(organizer, 'profile') or organizer.profile.role != 'organizer':
+        messages.error(request, "This user is not an organizer.")
+        return redirect('index')
+
+    organized_matches = Match.objects.filter(organizer=organizer).order_by('-date_time')
+    
+    context = {
+        'organizer': organizer,
+        'matches': organized_matches,
+        'total_events': organized_matches.count()
+    }
+    return render(request, 'organizer_public.html', context)
+
 
 
 # ============================================================
@@ -877,37 +1098,71 @@ import operator
 
 @login_required
 def fav_team_news(request):
-    """
-    View to display news and players related to the user's favorite teams.
-    """
+    # GET: Fetch news and players related to the user's favorite teams.
     profile, created = UserProfile.objects.get_or_create(user=request.user)
     favorite_teams = profile.favorite_teams.prefetch_related('players').all()
     
+    # Track if we are showing fallback news
+    is_fallback = False
     news_articles = []
     
     if favorite_teams.exists():
-        # Build a complex query to find news mentioning any of the favorite teams
-        # We search in headline and summary
-        query = reduce(operator.or_, [Q(headline__icontains=team.name) | Q(summary__icontains=team.name) for team in favorite_teams])
+        leagues = list(favorite_teams.values_list('league', flat=True).distinct())
+        # Live Sync
+        sync_news_for_leagues(leagues)
         
-        news_articles = NewsArticle.objects.filter(query).order_by('-id')
-    
+        # 1. Try specific team news with flexible keywords
+        team_keywords = []
+        for team in favorite_teams:
+            team_keywords.append(team.name)
+            # Add short name if it's long (e.g. "Kerala Blasters FC" -> "Kerala Blasters")
+            if ' ' in team.name:
+                parts = team.name.split(' ')
+                if len(parts) > 1:
+                    team_keywords.append(' '.join(parts[:-1])) # "Kerala Blasters"
+                    team_keywords.append(parts[0]) # "Barcelona" or "Kerala"
+        
+        # Unique keywords, descending length to match longest first if we were doing regex, 
+        # but here we just need them for Q objects
+        team_keywords = list(set(k for k in team_keywords if len(k) > 3))
+        
+        team_query = reduce(operator.or_, [Q(headline__icontains=kw) | Q(summary__icontains=kw) for kw in team_keywords])
+        news_articles = list(NewsArticle.objects.filter(team_query).order_by('-published_at'))
+        
+        # 2. Fallback to League News if specific team news is sparse
+        if len(news_articles) < 5:
+            already_shown_ids = [a.id for a in news_articles]
+            league_news = NewsArticle.objects.filter(category__in=leagues).exclude(id__in=already_shown_ids).order_by('-published_at')[:10]
+            
+            # Mark these as league news for the template
+            for art in league_news:
+                art.is_league_fallback = True
+            
+            news_articles.extend(list(league_news))
+            if news_articles:
+                is_fallback = True
+
     context = {
         'news_articles': news_articles,
-        'favorite_teams': favorite_teams
+        'favorite_teams': favorite_teams,
+        'is_fallback': is_fallback
     }
     return render(request, 'fav_team_news.html', context)
 
 @login_required
 def latest_news(request):
     """
-    View to display all latest news articles.
+    View to display all latest news articles specific to User's favorite sports.
     """
-    news_articles = NewsArticle.objects.all().order_by('-published_at')
+    user = request.user
+    favorite_teams = user.profile.favorite_teams.all()
     
-    context = {
-        'news_articles': news_articles
-    }
+    if favorite_teams.exists():
+        favorite_leagues = favorite_teams.values_list('league', flat=True).distinct()
+        news_articles = NewsArticle.objects.filter(category__in=favorite_leagues).order_by('-published_at')
+    else:
+        news_articles = NewsArticle.objects.none()
+        
     context = {
         'news_articles': news_articles
     }
@@ -927,3 +1182,235 @@ def feedback_view(request):
         form = FeedbackForm()
     
     return render(request, 'feedback.html', {'form': form})
+
+# Event Management Module Views
+
+def search_results(request):
+    """
+    Robust search for events, teams, and news content.
+    """
+    query = request.GET.get('q', '')
+    matches = []
+    teams = []
+    news = []
+    
+    if query:
+        matches = Match.objects.filter(
+            Q(home_team__name__icontains=query) | 
+            Q(away_team__name__icontains=query) |
+            Q(league__icontains=query) |
+            Q(venue__name__icontains=query)
+        ).distinct()
+        
+        teams = Team.objects.filter(
+            Q(name__icontains=query) |
+            Q(league__icontains=query) |
+            Q(description__icontains=query)
+        ).distinct()
+        
+        news = NewsArticle.objects.filter(
+            Q(headline__icontains=query) |
+            Q(summary__icontains=query) |
+            Q(content__icontains=query)
+        ).distinct()
+        
+    context = {
+        'query': query,
+        'matches': matches,
+        'teams': teams,
+        'news': news,
+    }
+    return render(request, 'search_results.html', context)
+
+@login_required
+def community_list(request):
+    """
+    List all fan groups and forums.
+    """
+    groups = CommunityGroup.objects.all().order_by('-created_at')
+    return render(request, 'community_list.html', {'groups': groups})
+
+@login_required
+def community_detail(request, group_id):
+    """
+    Detailed view of a community group with forum messages.
+    """
+    group = get_object_or_404(CommunityGroup, id=group_id)
+    is_member = request.user in group.members.all()
+    is_creator = (request.user == group.creator)
+    
+    # Check join request status
+    from .models import CommunityJoinRequest
+    join_request = CommunityJoinRequest.objects.filter(group=group, user=request.user, status='pending').first()
+    
+    # Visibility logic: if not public and not member, hide messages
+    messages_list = []
+    if group.is_public or is_member:
+        messages_list = group.messages.all().order_by('created_at')
+    
+    # Pending requests for creator/owner
+    pending_requests = []
+    group_members = []
+    if is_creator:
+        pending_requests = group.join_requests.filter(status='pending')
+        group_members = group.members.exclude(id=group.creator.id)
+    
+    if request.method == 'POST':
+        if 'join' in request.POST:
+            if group.require_approval:
+                CommunityJoinRequest.objects.get_or_create(group=group, user=request.user, defaults={'status': 'pending'})
+                messages.info(request, "Your join request has been sent to the community moderator.")
+            else:
+                group.members.add(request.user)
+                messages.success(request, f"Welcome to the {group.name} community!")
+            return redirect('community_detail', group_id=group.id)
+        
+        elif 'send_message' in request.POST and is_member:
+            content = request.POST.get('content')
+            if content:
+                CommunityMessage.objects.create(
+                    group=group,
+                    user=request.user,
+                    content=content
+                )
+                return redirect('community_detail', group_id=group.id)
+        
+    return render(request, 'community_detail.html', {
+        'group': group,
+        'is_member': is_member,
+        'is_creator': is_creator,
+        'forum_messages': messages_list,
+        'join_request': join_request,
+        'pending_requests': pending_requests,
+        'group_members': group_members
+    })
+
+@login_required
+def process_join_request(request, request_id, action):
+    from .models import CommunityJoinRequest
+    join_req = get_object_or_404(CommunityJoinRequest, id=request_id)
+    
+    # Only creator can approve/reject
+    if join_req.group.creator != request.user:
+        messages.error(request, "Permission denied.")
+        return redirect('community_detail', group_id=join_req.group.id)
+        
+    if action == 'approve':
+        join_req.status = 'approved'
+        join_req.group.members.add(join_req.user)
+        join_req.save()
+        messages.success(request, f"Approved {join_req.user.username}'s request.")
+    elif action == 'reject':
+        join_req.status = 'rejected'
+        join_req.save()
+        messages.info(request, f"Rejected {join_req.user.username}'s request.")
+        
+    return redirect('community_detail', group_id=join_req.group.id)
+
+@login_required
+def remove_member(request, group_id, user_id):
+    group = get_object_or_404(CommunityGroup, id=group_id)
+    if group.creator != request.user:
+        messages.error(request, "Permission denied.")
+        return redirect('community_detail', group_id=group.id)
+    
+    target_user = get_object_or_404(User, id=user_id)
+    if target_user != group.creator:
+        group.members.remove(target_user)
+        messages.success(request, f"Successfully removed {target_user.username} from the community.")
+    
+    return redirect('community_detail', group_id=group.id)
+
+@login_required
+def toggle_community_setting(request, group_id, setting):
+    group = get_object_or_404(CommunityGroup, id=group_id)
+    if group.creator != request.user:
+        messages.error(request, "Permission denied.")
+        return redirect('community_detail', group_id=group.id)
+    
+    if setting == 'public':
+        group.is_public = not group.is_public
+        status = "Public" if group.is_public else "Private"
+        messages.success(request, f"Community visibility updated: Now {status}.")
+    elif setting == 'approval':
+        group.require_approval = not group.require_approval
+        status = "ON" if group.require_approval else "OFF"
+        messages.success(request, f"Manual approval is now {status}.")
+    
+    group.save()
+    return redirect('community_detail', group_id=group.id)
+
+def team_detail(request, team_id):
+    """
+    Comprehensive team profile with stats and roster.
+    """
+    team = get_object_or_404(Team.objects.prefetch_related('players'), id=team_id)
+    recent_matches = Match.objects.filter(Q(home_team=team) | Q(away_team=team)).order_by('-date_time')[:5]
+    
+    is_following = False
+    if request.user.is_authenticated:
+        is_following = request.user.profile.favorite_teams.filter(id=team.id).exists()
+        
+        if request.method == 'POST' and 'toggle_follow' in request.POST:
+            if is_following:
+                request.user.profile.favorite_teams.remove(team)
+                messages.info(request, f"You are no longer following {team.name}")
+            else:
+                request.user.profile.favorite_teams.add(team)
+                messages.success(request, f"Success! You are now following {team.name}")
+            return redirect('team_detail', team_id=team.id)
+
+    return render(request, 'team_detail.html', {
+        'team': team,
+        'recent_matches': recent_matches,
+        'is_following': is_following
+    })
+
+def player_detail(request, player_id):
+    """
+    Detailed player profile.
+    """
+    player = get_object_or_404(Player.objects.select_related('team'), id=player_id)
+    return render(request, 'player_detail.html', {'player': player})
+
+@login_required
+def vote_poll(request, poll_id):
+    """
+    Allows users to vote on match outcomes/performance.
+    """
+    poll = get_object_or_404(Poll, id=poll_id)
+    if request.method == 'POST':
+        choice = request.POST.get('choice')
+        if choice == 'a':
+            poll.votes_a += 1
+        elif choice == 'b':
+            poll.votes_b += 1
+        poll.save()
+        messages.success(request, "Vote recorded! Thanks for participating.")
+    
+    return redirect(request.META.get('HTTP_REFERER', 'index'))
+
+@login_required
+def create_community(request):
+    """
+    View to create a new fan group or community.
+    """
+    if request.method == 'POST':
+        form = CommunityGroupForm(request.POST)
+        if form.is_valid():
+            group = form.save(commit=False)
+            group.creator = request.user
+            group.save()
+            group.members.add(request.user)
+            messages.success(request, f"Community group '{group.name}' created successfully!")
+            return redirect('community_detail', group_id=group.id)
+    else:
+        form = CommunityGroupForm()
+    
+    return render(request, 'create_community.html', {'form': form})
+
+def load_teams(request):
+    league = request.GET.get('league')
+    from .models import Team
+    teams = Team.objects.filter(league=league).order_by('name')
+    return render(request, 'team_dropdown_list_options.html', {'teams': teams})

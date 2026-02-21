@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Fan Communities - iSports{% endblock %}
+
+{% block extra_css %}
+<style>
+    .community-page {
+        padding: 120px 0 80px;
+        background: #0b1118;
+        min-height: 100vh;
+    }
+    
+    .community-header {
+        text-align: center;
+        margin-bottom: 60px;
+    }
+    
+    .community-header h1 {
+        font-family: var(--accent-font);
+        color: #fff;
+        font-size: 3.5rem;
+        margin-bottom: 10px;
+    }
+    
+    .group-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 20px;
+        padding: 30px;
+        height: 100%;
+        transition: all 0.3s;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .group-card:hover {
+        background: rgba(255,255,255,0.06);
+        border-color: var(--accent-color);
+        transform: translateY(-5px);
+    }
+    
+    .group-icon {
+        width: 70px;
+        height: 70px;
+        background: rgba(196, 34, 33, 0.1);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent-color);
+        margin-bottom: 20px;
+        font-size: 2rem;
+    }
+    
+    .member-count {
+        background: rgba(255,255,255,0.05);
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        color: #fff;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="community-page">
+    <div class="container">
+        <div class="community-header fade-in-up">
+            <h1>Fan Communities</h1>
+            <p class="text-white-50 lead">Join exclusive groups centered around your favorite teams and leagues.</p>
+            <div class="mt-4">
+                <a href="{% url 'create_community' %}" class="btn-default btn-highlighted">Create New Group</a>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            {% for group in groups %}
+            <div class="col-lg-4 col-md-6 fade-in-up">
+                <div class="group-card">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="group-icon">
+                            {% if group.team %}
+                                <i class="fas fa-shield-alt"></i>
+                            {% else %}
+                                <i class="fas fa-users"></i>
+                            {% endif %}
+                        </div>
+                        <span class="member-count"><i class="fas fa-user-friends me-1"></i> {{ group.members.count }}</span>
+                    </div>
+                    
+                    <h4 class="text-white mb-2">{{ group.name }}</h4>
+                    <p class="text-white-50 small mb-4 flex-grow-1">{{ group.description|truncatewords:25 }}</p>
+                    
+                    <div class="mt-auto d-flex justify-content-between align-items-center">
+                        <span class="badge bg-dark border border-secondary text-uppercase" style="font-size: 0.65rem;">
+                            {% if group.team %}{{ group.team.name }}{% else %}{{ group.league }}{% endif %}
+                        </span>
+                        <a href="{% url 'community_detail' group.id %}" class="text-danger fw-bold text-decoration-none small">VIEW GROUP <i class="fas fa-arrow-right ms-1"></i></a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center fade-in-up" style="padding: 80px 20px;">
+                <div style="font-size: 60px; color: rgba(255,255,255,0.1); margin-bottom: 20px;">
+                    <i class="fas fa-users-slash"></i>
+                </div>
+                <h3 class="text-white mb-3" style="font-family: var(--accent-font);">No community groups found</h3>
+                <p class="text-white-50 mb-4">Be the first to spark a conversation!</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Establish Fan Community - iSports{% endblock %}
+
+{% block extra_css %}
+<style>
+    .create-community-page {
+        padding: 140px 0 80px;
+        background: radial-gradient(circle at top right, #1a202c 0%, #0b0e11 100%);
+        min-height: 100vh;
+    }
+    
+    .form-container {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 24px;
+        padding: 40px;
+        backdrop-filter: blur(10px);
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    
+    .form-control {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #fff !important;
+        border-radius: 12px;
+        padding: 12px 20px;
+        transition: all 0.3s;
+    }
+    
+    .form-control:focus {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border-color: var(--accent-color) !important;
+        box-shadow: 0 0 15px rgba(196, 34, 33, 0.2);
+    }
+    
+    label {
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: block;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+    }
+    
+    .help-text {
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.4);
+        margin-top: 5px;
+    }
+
+    select.form-control {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 20px center !important;
+        background-size: 14px !important;
+    }
+
+    select.form-control option {
+        background-color: #0b1118;
+        color: #fff;
+        padding: 10px;
+    }
+
+    select.form-control:focus option {
+        background-color: #0b1118;
+    }
+
+    /* Custom Switch Styling */
+    .form-switch .form-check-input {
+        width: 3rem !important;
+        height: 1.5rem !important;
+        background-color: rgba(255,255,255,0.1) !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-left: 0 !important;
+        margin-top: 0 !important;
+        float: none !important;
+        flex-shrink: 0;
+    }
+
+    .form-switch .form-check-input:checked {
+        background-color: var(--accent-color) !important;
+        border-color: var(--accent-color) !important;
+        box-shadow: 0 0 12px rgba(196, 34, 33, 0.4) !important;
+    }
+
+    .form-switch .form-check-input:focus {
+        box-shadow: none !important;
+        outline: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="create-community-page">
+    <div class="container">
+        <div class="text-center mb-5 fade-in-up">
+            <h1 class="text-white display-4 fw-bold" style="font-family: var(--accent-font);">Establish Community</h1>
+            <p class="text-white-50 lead">Start a new hub for fans of your favorite teams or leagues.</p>
+        </div>
+
+        <div class="form-container fade-in-up">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label for="{{ form.name.id_for_label }}">Community Name</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <div class="text-danger small mt-1">{{ form.name.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-4">
+                    <label for="{{ form.description.id_for_label }}">Vision & Description</label>
+                    {{ form.description }}
+                    <div class="help-text">Describe the purpose and spirit of this community hub.</div>
+                    {% if form.description.errors %}
+                        <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <label for="{{ form.team.id_for_label }}">Associate with Team</label>
+                        {{ form.team }}
+                        <div class="help-text">Optional: Center this group around a club.</div>
+                        {% if form.team.errors %}
+                            <div class="text-danger small mt-1">{{ form.team.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.league.id_for_label }}">Target League</label>
+                        {{ form.league }}
+                        <div class="help-text">e.g., Premier League, La Liga, etc.</div>
+                        {% if form.league.errors %}
+                            <div class="text-danger small mt-1">{{ form.league.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-5">
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <div class="form-check form-switch p-0 d-flex align-items-center mb-0">
+                            {{ form.is_public }}
+                            <label class="ms-3 mb-0" for="{{ form.is_public.id_for_label }}" style="text-transform: none; font-size: 0.95rem; letter-spacing: 0; color: #fff; cursor: pointer;">Public Community (Visible Chat)</label>
+                        </div>
+                        <div class="help-text mt-2 ps-1">If disabled, only members can see conversation history.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check form-switch p-0 d-flex align-items-center mb-0">
+                            {{ form.require_approval }}
+                            <label class="ms-3 mb-0" for="{{ form.require_approval.id_for_label }}" style="text-transform: none; font-size: 0.95rem; letter-spacing: 0; color: #fff; cursor: pointer;">Require Membership Approval</label>
+                        </div>
+                        <div class="help-text mt-2 ps-1">If enabled, owners must approve all join requests.</div>
+                    </div>
+                </div>
+
+                <div class="mt-5">
+                    <button type="submit" class="btn-default w-100 btn-highlighted py-3 h5 mb-3">CREATE FAN COMMUNITY</button>
+                    <a href="{% url 'community_list' %}" class="btn btn-link w-100 text-white-50 text-decoration-none small">Cancel and Return</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $("#id_league_select").change(function () {
+        const url = "{% url 'ajax_load_teams' %}";
+        const leagueName = $(this).val();
+
+        $.ajax({
+            url: url,
+            data: {
+                'league': leagueName
+            },
+            success: function (data) {
+                $("#id_team_select").html(data);
+            }
+        });
+    });
+</script>
+{% endblock %}

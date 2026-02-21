@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ player.name }} Profile - iSports{% endblock %}
+
+{% block extra_css %}
+<style>
+    .player-profile {
+        padding: 120px 0 80px;
+        background: radial-gradient(circle at top left, #1a202c 0%, #0b0e11 100%);
+        min-height: 100vh;
+    }
+    
+    .profile-main-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 24px;
+        padding: 40px;
+        backdrop-filter: blur(10px);
+    }
+    
+    .player-large-img {
+        width: 100%;
+        max-width: 300px;
+        aspect-ratio: 1;
+        object-fit: cover;
+        border-radius: 20px;
+        background: #1a202c;
+        border: 2px solid rgba(255,255,255,0.1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    
+    .stat-pill {
+        background: rgba(255,255,255,0.05);
+        padding: 15px 25px;
+        border-radius: 15px;
+        border: 1px solid rgba(255,255,255,0.08);
+        text-align: center;
+        transition: all 0.3s;
+    }
+    
+    .stat-pill:hover {
+        background: rgba(255,255,255,0.1);
+        border-color: var(--accent-color);
+    }
+    
+    .team-strip-link {
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        background: rgba(196, 34, 33, 0.1);
+        border: 1px solid rgba(196, 34, 33, 0.2);
+        border-radius: 15px;
+        text-decoration: none !important;
+        transition: all 0.3s;
+    }
+    
+    .team-strip-link:hover {
+        background: rgba(196, 34, 33, 0.2);
+        transform: scale(1.02);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="player-profile">
+    <div class="container">
+        <div class="profile-main-card fade-in-up">
+            <div class="row align-items-center">
+                <div class="col-lg-4 text-center mb-5 mb-lg-0">
+                    {% if player.photo_url %}
+                    <img src="{{ player.photo_url }}" class="player-large-img mb-4" alt="{{ player.name }}">
+                    {% else %}
+                    <div class="player-large-img d-flex align-items-center justify-content-center mb-4 mx-auto">
+                        <i class="fas fa-user-circle fa-8x text-white-50"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <a href="{% url 'team_detail' player.team.id %}" class="team-strip-link">
+                        {% if player.team.logo %}
+                        <img src="{{ player.team.logo.url }}" style="height: 40px;" class="me-3" alt="">
+                        {% endif %}
+                        <div class="text-start">
+                            <small class="text-white-50 d-block text-uppercase fw-bold" style="font-size: 0.6rem;">Current Club</small>
+                            <span class="text-white fw-bold">{{ player.team.name }}</span>
+                        </div>
+                        <i class="fas fa-arrow-right ms-auto text-white-50"></i>
+                    </a>
+                </div>
+                
+                <div class="col-lg-8 ps-lg-5">
+                    <div class="mb-4">
+                        <span class="badge bg-danger mb-3 px-3 py-2 fw-bold text-uppercase">{{ player.position }}</span>
+                        <h1 class="text-white display-3 fw-bold mb-2">{{ player.name }}</h1>
+                        <p class="text-white-50 h5"><i class="fas fa-globe-americas me-2 text-danger"></i> {{ player.nationality|default:"International" }}</p>
+                    </div>
+
+                    <div class="row g-3 mb-5">
+                        <div class="col-md-4 col-6">
+                            <div class="stat-pill">
+                                <span class="d-block text-white-50 small text-uppercase mb-1">Age</span>
+                                <span class="h3 text-white fw-bold mb-0">27</span> <!-- Mock Age -->
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-6">
+                            <div class="stat-pill">
+                                <span class="d-block text-white-50 small text-uppercase mb-1">Position</span>
+                                <span class="h3 text-white fw-bold mb-0">{{ player.position }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-12">
+                            <div class="stat-pill">
+                                <span class="d-block text-white-50 small text-uppercase mb-1">League</span>
+                                <span class="h3 text-white fw-bold mb-0">{{ player.team.league }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                        <h5 class="text-white mb-3">Player Insights</h5>
+                        <p class="text-white-50 mb-0">A key component of {{ player.team.name }}'s tactical setup. Known for exceptional performance in the {{ player.team.league }} and consistent contributions to the squad's dynamics this season. Full career statistics and historical match impact reports are currently being compiled for the premium fans module.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

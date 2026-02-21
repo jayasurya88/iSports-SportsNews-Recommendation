@@ -135,7 +135,11 @@
         <!-- Header -->
         <div class="text-center mb-5 fade-in-up">
             <h1 class="display-4 font-weight-bold text-white mb-3" style="font-family: var(--accent-font);">My Team News</h1>
+            {% if is_fallback %}
+            <p class="lead text-white-50">No specific updates for your teams yet, showing the latest from their leagues.</p>
+            {% else %}
             <p class="lead text-white-50">Latest updates from your favorite teams.</p>
+            {% endif %}
             
             {% if favorite_teams %}
             <div class="d-flex flex-wrap justify-content-center mt-4">
@@ -255,4 +259,19 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Force hide preloader if it gets stuck or leaves ghosts
+        const preloader = document.querySelector('.preloader');
+        if (preloader) {
+            preloader.style.opacity = '0';
+            setTimeout(() => {
+                preloader.style.display = 'none';
+            }, 600);
+        }
+    });
+</script>
 {% endblock %}

@@ -291,7 +291,7 @@ body{
 
 .btn-default.btn-highlighted{
 	background: var(--white-color);
-    color: var(--primary-color);
+    color: var(--primary-color) !important;
 }
 
 .btn-default.btn-highlighted:hover{

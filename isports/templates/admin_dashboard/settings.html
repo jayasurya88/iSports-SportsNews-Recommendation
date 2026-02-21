@@ -133,6 +133,51 @@
                 {% endfor %}
             </div>
         </div>
+
+        <!-- API Limits & Usage -->
+        <div class="api-card">
+            <h5 class="mb-4">API Usage & Quotas</h5>
+            
+            <div class="row align-items-center mb-4">
+                <div class="col-md-4">
+                    <div class="text-muted small mb-1">Estimated Storage Utilization</div>
+                    <div class="h4 fw-bold mb-0">{{ api_info.api_limits.usage_percent }}%</div>
+                </div>
+                <div class="col-md-8">
+                    <div class="progress" style="height: 10px; border-radius: 5px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ api_info.api_limits.usage_percent }}%;" aria-valuenow="{{ api_info.api_limits.usage_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-borderless table-sm mb-0">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted" style="width: 200px;">Current Rate Limit:</td>
+                            <td class="fw-bold text-dark">{{ api_info.api_limits.rate_limit }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Daily Request Quota:</td>
+                            <td class="fw-bold text-dark">{{ api_info.api_limits.request_quota }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Authentication Method:</td>
+                            <td class="fw-bold text-dark">{{ api_info.api_limits.auth_method }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Data Residency:</td>
+                            <td class="fw-bold text-dark">{{ api_info.api_limits.data_residency }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="alert alert-info py-2 px-3 mt-4 mb-0" style="font-size: 0.85rem; border: none; background: rgba(13, 202, 240, 0.05);">
+                <i class="fas fa-info-circle me-2"></i>
+                Synchronizing data manually will reset the local cache for the selected leagues.
+            </div>
+        </div>
     </div>
 
     <div class="col-lg-4">
@@ -149,11 +194,30 @@
             
             <form id="syncForm" action="{% url 'sync_sports_data' %}" method="POST" class="mt-4">
                 {% csrf_token %}
-                <button type="submit" id="syncBtn" class="btn-highlighted w-100 py-3" {% if is_syncing %}disabled style="opacity:0.7; cursor:not-allowed;"{% endif %}>
+                <button type="submit" id="syncBtn" class="btn-highlighted w-100 py-3 submit-btn" {% if is_syncing %}disabled style="opacity:0.7; cursor:not-allowed;"{% endif %}>
                     <i class="fas fa-sync-alt me-2 {% if is_syncing %}fa-spin-custom{% endif %}" id="syncIcon"></i> 
                     <span id="btnText">{% if is_syncing %}SYNCING DATA...{% else %}FETCH LATEST DATA{% endif %}</span>
                 </button>
             </form>
+            
+            <div class="row mt-3 g-2">
+                <div class="col-6">
+                    <form action="{% url 'sync_sports_rosters' %}" method="POST" class="sync-extra-form">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-light w-100 py-2 submit-btn" style="font-size: 0.85rem;" {% if is_syncing %}disabled style="opacity:0.7; cursor:not-allowed;"{% endif %}>
+                            <i class="fas fa-users"></i> Rosters Only
+                        </button>
+                    </form>
+                </div>
+                <div class="col-6">
+                    <form action="{% url 'sync_sports_news' %}" method="POST" class="sync-extra-form">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-light w-100 py-2 submit-btn" style="font-size: 0.85rem;" {% if is_syncing %}disabled style="opacity:0.7; cursor:not-allowed;"{% endif %}>
+                            <i class="fas fa-newspaper"></i> News Only
+                        </button>
+                    </form>
+                </div>
+            </div>
             <div class="mt-3 text-center">
                 <small id="syncStatus" style="color: rgba(255, 255, 255, 0.5);">
                     {% if is_syncing %}
@@ -204,35 +268,42 @@
 
 {% block extra_js %}
 <script>
-    document.getElementById('syncForm').addEventListener('submit', function(e) {
-        const btn = document.getElementById('syncBtn');
-        const icon = document.getElementById('syncIcon');
-        const btnText = document.getElementById('btnText');
-        const syncCard = document.getElementById('syncCard');
-        const syncStatus = document.getElementById('syncStatus');
-        const syncText = document.getElementById('syncText');
-        const integrityStats = document.querySelectorAll('.integrity-stat');
-        const statsLoadingMsg = document.getElementById('statsLoadingMsg');
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            // Only target the sync forms
+            if(this.id !== 'syncForm' && !this.classList.contains('sync-extra-form')) return;
 
-        // Disable button to prevent double-click
-        btn.disabled = true;
-        btn.style.opacity = '0.7';
-        btn.style.cursor = 'not-allowed';
+            const btns = document.querySelectorAll('.submit-btn');
+            const icon = document.getElementById('syncIcon');
+            const btnText = document.getElementById('btnText');
+            const syncCard = document.getElementById('syncCard');
+            const syncStatus = document.getElementById('syncStatus');
+            const syncText = document.getElementById('syncText');
+            const integrityStats = document.querySelectorAll('.integrity-stat');
+            const statsLoadingMsg = document.getElementById('statsLoadingMsg');
 
-        // Add animations
-        icon.classList.add('fa-spin-custom');
-        syncCard.classList.add('sync-card-active');
-        
-        // Add shimmer to stats
-        integrityStats.forEach(stat => {
-            stat.classList.add('stat-updating');
+            // Disable buttons to prevent double-click
+            btns.forEach(b => {
+                b.disabled = true;
+                b.style.opacity = '0.7';
+                b.style.cursor = 'not-allowed';
+            });
+
+            // Add animations
+            if(icon) icon.classList.add('fa-spin-custom');
+            if(syncCard) syncCard.classList.add('sync-card-active');
+            
+            // Add shimmer to stats
+            integrityStats.forEach(stat => {
+                stat.classList.add('stat-updating');
+            });
+            if(statsLoadingMsg) statsLoadingMsg.classList.remove('d-none');
+            
+            // Update texts
+            if(btnText) btnText.innerText = 'SYNCING DATA...';
+            if(syncText) syncText.innerText = 'Please wait while the system connects to global sports servers and updates your local database.';
+            if(syncStatus) syncStatus.innerHTML = '<span class="text-warning"><i class="fas fa-info-circle me-1"></i> Synchronization in progress...</span>';
         });
-        statsLoadingMsg.classList.remove('d-none');
-        
-        // Update texts
-        btnText.innerText = 'SYNCING DATA...';
-        syncText.innerText = 'Please wait while the system connects to global sports servers and updates your local database.';
-        syncStatus.innerHTML = '<span class="text-warning"><i class="fas fa-info-circle me-1"></i> Synchronization in progress...</span>';
     });
 </script>
 {% endblock %}

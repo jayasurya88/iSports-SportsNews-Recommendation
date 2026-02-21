@@ -19,57 +19,102 @@
     
     <style>
         :root {
-            --sidebar-width: 260px;
-            --dashboard-bg: #f8f9fa;
+            --sidebar-width: 280px;
+            --dashboard-bg: #f4f7f6;
+            --primary-dark: #020d14;
+            --sidebar-accent: rgba(196, 34, 33, 0.1);
         }
-        body { background-color: var(--dashboard-bg); overflow-x: hidden; }
+        body { 
+            font-family: 'Manrope', sans-serif;
+            background-color: var(--dashboard-bg); 
+            overflow-x: hidden; 
+            color: #333;
+        }
         .sidebar {
             position: fixed;
             top: 0; left: 0; height: 100vh;
             width: var(--sidebar-width);
-            background-color: var(--primary-color);
+            background-color: var(--primary-dark);
             color: #fff;
-            padding-top: 20px;
+            padding: 30px 0;
             z-index: 1000;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.05);
         }
         .sidebar-brand {
-            padding: 0 25px 30px;
+            padding: 0 30px 40px;
             font-family: var(--accent-font);
-            font-size: 24px;
-            letter-spacing: 1px;
-        }
-        .sidebar-brand span { color: var(--accent-color); }
-        .nav-menu { list-style: none; padding: 0; margin: 0; }
-        .nav-item a {
-            padding: 12px 25px;
+            font-size: 28px;
+            letter-spacing: 2px;
             display: flex;
             align-items: center;
-            color: rgba(255,255,255,0.7);
+            gap: 10px;
+        }
+        .sidebar-brand span { color: var(--accent-color); }
+        .sidebar-brand i { font-size: 24px; color: var(--accent-color); }
+
+        .nav-menu { list-style: none; padding: 0 15px; margin: 0; }
+        .nav-item { margin-bottom: 8px; }
+        .nav-item a {
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            color: rgba(255,255,255,0.6);
             text-decoration: none;
             transition: all 0.3s;
-            font-size: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 12px;
         }
-        .nav-item a:hover, .nav-item a.active {
-            background: rgba(255,255,255,0.05);
+        .nav-item a:hover {
             color: #fff;
-            border-left: 4px solid var(--accent-color);
+            background: rgba(255,255,255,0.05);
         }
-        .nav-item a i { margin-right: 15px; width: 20px; text-align: center; }
+        .nav-item a.active {
+            background: var(--accent-color);
+            color: #fff;
+            box-shadow: 0 10px 20px rgba(196, 34, 33, 0.3);
+        }
+        .nav-item a i { margin-right: 15px; width: 20px; text-align: center; font-size: 18px; }
+        
         .main-content { margin-left: var(--sidebar-width); min-height: 100vh; }
         .top-navbar {
-            background: #fff;
-            padding: 15px 30px;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(10px);
+            padding: 20px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
         }
-        .stats-card {
+        .top-navbar h4 {
+            font-family: var(--accent-font);
+            letter-spacing: 1px;
+            color: var(--primary-dark);
+        }
+        .user-profile-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 5px 15px 5px 5px;
             background: #fff;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
+            border-radius: 50px;
+            border: 1px solid #eee;
+        }
+        .user-avatar-small {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--accent-color);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
         }
     </style>
     {% block extra_css %}{% endblock %}
@@ -77,7 +122,9 @@
 <body>
 
     <div class="sidebar">
-        <div class="sidebar-brand">i<span>SPORTS</span> ORG</div>
+        <div class="sidebar-brand">
+            <i class="fas fa-crown"></i> i<span>SPORTS</span>
+        </div>
         <ul class="nav-menu">
             <li class="nav-item">
                 <a href="{% url 'organizer_dashboard' %}" class="{% if request.resolver_match.url_name == 'organizer_dashboard' %}active{% endif %}">
@@ -95,12 +142,12 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{% url 'profile_view' %}" class="{% if request.resolver_match.url_name == 'profile_view' %}active{% endif %}">
+                <a href="{% url 'organizer_profile' %}" class="{% if request.resolver_match.url_name == 'organizer_profile' %}active{% endif %}">
                     <i class="fas fa-user-circle"></i> Profile
                 </a>
             </li>
-            <li class="nav-item mt-5">
-                <a href="{% url 'logout' %}">
+            <li class="nav-item mt-5 pt-5">
+                <a href="{% url 'logout' %}" class="text-danger">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
             </li>
@@ -110,8 +157,18 @@
     <div class="main-content">
         <div class="top-navbar">
             <h4 class="mb-0">{% block page_title %}Dashboard{% endblock %}</h4>
-            <div class="user-info">
-                <span>Welcome, <strong>{{ request.user.get_full_name|default:request.user.username }}</strong></span>
+            <div class="user-profile-badge">
+                <div class="user-avatar-small">
+                    {% if request.user.profile.profile_picture %}
+                    <img src="{{ request.user.profile.profile_picture.url }}" class="rounded-circle w-100 h-100" style="object-fit:cover;">
+                    {% else %}
+                    {{ request.user.username|make_list|first|upper }}
+                    {% endif %}
+                </div>
+                <div class="d-none d-md-block">
+                    <small class="text-muted d-block" style="font-size: 10px; line-height: 1;">ORGANIZER</small>
+                    <span class="fw-bold" style="font-size: 13px;">{{ request.user.get_full_name|default:request.user.username }}</span>
+                </div>
             </div>
         </div>
 
