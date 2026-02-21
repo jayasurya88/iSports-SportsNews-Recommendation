@@ -111,8 +111,33 @@ class Poll(models.Model):
     votes_b = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def total_votes(self):
+        return self.votes_a + self.votes_b
+
+    def percentage_a(self):
+        total = self.total_votes()
+        if total == 0: return 0
+        return int((self.votes_a / total) * 100)
+
+    def percentage_b(self):
+        total = self.total_votes()
+        if total == 0: return 0
+        return int((self.votes_b / total) * 100)
+
     def __str__(self):
         return self.question
+
+class PollVote(models.Model):
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name='user_votes')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    choice = models.CharField(max_length=1) # 'a' or 'b'
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('poll', 'user')
+
+    def __str__(self):
+        return f"{self.user.username} voted on {self.poll.question}"
 
 class Alert(models.Model):
     match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='alerts')
@@ -151,12 +176,13 @@ class UserProfile(models.Model):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='user')
     needs_password_change = models.BooleanField(default=False)
     onboarding_completed = models.BooleanField(default=False)
-    is_premium = models.BooleanField(default=False)
     view_password = models.CharField(max_length=128, blank=True, null=True) # For admin visibility (Dev only)
     
     # Preference Engine Data
     interests = models.TextField(blank=True, help_text="Comma separated sports interests")
     favorite_teams = models.ManyToManyField(Team, blank=True, related_name='fans')
+    
+    is_premium = models.BooleanField(default=False)
     
     # Notification Settings
     email_notifications = models.BooleanField(default=True)

@@ -262,9 +262,7 @@
                                 <div class="selectable-item sport-item" data-sport="{{ sport }}">
                                     <input type="checkbox" name="sports" value="{{ sport }}" class="hidden-check sport-input">
                                     <div class="check-badge"><i class="fas fa-check-circle"></i></div>
-                                    {% if sport == 'Cricket' %}
-                                        <i class="fas fa-baseball-ball"></i>
-                                    {% elif sport == 'Football' or sport == 'Soccer' %}
+                                    {% if sport == 'Football' or sport == 'Soccer' %}
                                         <i class="fas fa-futbol"></i>
                                     {% elif sport == 'Basketball' %}
                                         <i class="fas fa-basketball-ball"></i>

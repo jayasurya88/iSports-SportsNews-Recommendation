@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from .models import Team, Match, Venue, UserProfile, NewsArticle, Feedback, Player, Poll, Alert, CommunityGroup, CommunityMessage, Ticket
+from .models import Team, Match, Venue, UserProfile, NewsArticle, Feedback, Player, Poll, PollVote, Alert, CommunityGroup, CommunityMessage, Ticket
 from .forms import UserUpdateForm, ProfileUpdateForm, FeedbackForm, CommunityGroupForm
 from django.db.models import Q, Sum
 import json
@@ -378,8 +378,7 @@ def system_settings(request):
             'English Premier League (Football)',
             'Spanish La Liga (Football)',
             'NBA (Basketball)',
-            'NFL (American Football)',
-            'International Cricket (Cricket)'
+            'NFL (American Football)'
         ],
         'api_limits': {
             'rate_limit': 'Unlimited (Public Access)',
@@ -784,7 +783,7 @@ def user_dashboard(request):
         recommended_matches = list(
             Match.objects.filter(
                 Q(home_team__in=favorite_teams) | Q(away_team__in=favorite_teams),
-                status='scheduled'
+                status__in=['scheduled', 'live']
             ).select_related('home_team', 'away_team', 'venue').order_by('date_time')[:5]
         )
         
@@ -796,7 +795,7 @@ def user_dashboard(request):
             league_matches = list(
                 Match.objects.filter(
                     league__in=fav_leagues,
-                    status='scheduled'
+                    status__in=['scheduled', 'live']
                 ).exclude(
                     id__in=already_shown_ids
                 ).select_related('home_team', 'away_team', 'venue').order_by('date_time')[:3]
@@ -811,14 +810,14 @@ def user_dashboard(request):
             Match.objects.exclude(
                 home_team__sport__in=followed_sports
             ).filter(
-                status='scheduled'
+                status__in=['scheduled', 'live']
             ).select_related('home_team', 'away_team', 'venue').order_by('?')[:2]
         )
     else:
         # --- Tier 4: Trending fallback for new users ---
         recommended_matches = list(
             Match.objects.filter(
-                status='scheduled'
+                status__in=['scheduled', 'live']
             ).select_related('home_team', 'away_team', 'venue').order_by('date_time')[:6]
         )
         for m in recommended_matches:
@@ -837,6 +836,20 @@ def user_dashboard(request):
     else:
         news_articles = NewsArticle.objects.all().order_by('-published_at')[:4]
 
+    # Trending Discussions & Community
+    trending_polls = Poll.objects.all().order_by('-created_at')[:1]
+    
+    # Mark polls the user has already voted on
+    for poll in trending_polls:
+        user_vote = PollVote.objects.filter(poll=poll, user=request.user).first()
+        if user_vote:
+            poll.user_has_voted = True
+            poll.user_choice = user_vote.choice
+        else:
+            poll.user_has_voted = False
+
+    trending_communities = CommunityGroup.objects.all().order_by('-created_at')[:2]
+
     context = {
         'favorite_teams': favorite_teams,
         'recommended_matches': recommended_matches,
@@ -844,6 +857,8 @@ def user_dashboard(request):
         'has_favorites': favorite_teams.exists(),
         'followed_leagues_count': followed_leagues_count,
         'news_articles': news_articles,
+        'trending_polls': trending_polls,
+        'trending_communities': trending_communities,
     }
     return render(request, 'user_dashboard.html', context)
 
@@ -1120,6 +1135,26 @@ def my_tickets(request):
         'tickets': tickets
     }
     return render(request, 'my_tickets.html', context)
+
+@login_required
+def premium_payment_view(request):
+    """View to display mock payment page for premium membership."""
+    context = {
+        'payment_type': 'premium',
+        'total_price': 999.00,
+        'booking_fee': 0.00,
+    }
+    return render(request, 'payment_mock.html', context)
+
+@login_required
+def process_premium_payment(request):
+    """Processes the mock payment for premium and upgrades the user."""
+    if request.method == 'POST':
+        profile = request.user.profile
+        profile.is_premium = True
+        profile.save()
+        messages.success(request, "Congratulations! You are now a Premium Member.")
+    return redirect('user_dashboard')
 
 from django.db.models import Q
 from functools import reduce
@@ -1413,11 +1448,19 @@ def vote_poll(request, poll_id):
     """
     poll = get_object_or_404(Poll, id=poll_id)
     if request.method == 'POST':
-        choice = request.POST.get('choice')
+        # Check if user has already voted
+        if PollVote.objects.filter(poll=poll, user=request.user).exists():
+            messages.warning(request, "You have already voted on this poll.")
+            return redirect(request.META.get('HTTP_REFERER', 'index'))
+
+        choice = request.POST.get('option') # Changed from 'choice' to 'option' to match template
         if choice == 'a':
             poll.votes_a += 1
+            PollVote.objects.create(poll=poll, user=request.user, choice='a')
         elif choice == 'b':
             poll.votes_b += 1
+            PollVote.objects.create(poll=poll, user=request.user, choice='b')
+        
         poll.save()
         messages.success(request, "Vote recorded! Thanks for participating.")
     

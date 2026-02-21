@@ -6,6 +6,7 @@ import socket
 import time
 from datetime import datetime, timedelta
 from app.models import Team, Match, Venue, NewsArticle, Player
+from django.core.files.base import ContentFile
 
 # Fix SSL errors
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -21,7 +22,6 @@ LEAGUES = [
     {'path': 'basketball/nba',    'name': 'NBA',                    'sport': 'Basketball'},
     {'path': 'football/nfl',      'name': 'NFL',                    'sport': 'American Football'},
     {'path': 'soccer/ger.1',      'name': 'German Bundesliga',      'sport': 'Football'},
-    {'path': 'cricket/8039',      'name': 'International Cricket',   'sport': 'Cricket'},
 ]
 
 HEADERS = {'User-Agent': 'iSports-Student-Project/1.0'}
@@ -50,7 +50,6 @@ class Command(BaseCommand):
         return None
 
     def _download_logo(self, team_obj, logo_url):
-        # ... existing logo code ...
         if not logo_url or team_obj.logo:
             return
         try:
@@ -67,13 +66,13 @@ class Command(BaseCommand):
 
         athletes = data.get('athletes', []) if data else []
         
-        # Fallback for cricket or other leagues where ESPN roster API is 400 Bad Request
+        # Fallback for leagues where ESPN roster API is 400 Bad Request
         if not athletes:
             athletes = [
-                {'fullName': f'{team.name} Player 1', 'position': {'displayName': 'Forward/Batsman'}},
-                {'fullName': f'{team.name} Player 2', 'position': {'displayName': 'Midfielder/All-Rounder'}},
-                {'fullName': f'{team.name} Player 3', 'position': {'displayName': 'Defender/Bowler'}},
-                {'fullName': f'{team.name} Player 4', 'position': {'displayName': 'Goalkeeper/Keeper'}},
+                {'fullName': f'{team.name} Player 1', 'position': {'displayName': 'Forward'}},
+                {'fullName': f'{team.name} Player 2', 'position': {'displayName': 'Midfielder'}},
+                {'fullName': f'{team.name} Player 3', 'position': {'displayName': 'Defender'}},
+                {'fullName': f'{team.name} Player 4', 'position': {'displayName': 'Goalkeeper'}},
                 {'fullName': f'{team.name} Captain', 'position': {'displayName': 'Captain'}},
             ]
 
@@ -170,8 +169,9 @@ class Command(BaseCommand):
             Venue.objects.all().delete()
             self.stdout.write(self.style.SUCCESS('Cleanup complete.'))
 
-        # Date range: today → +30 days
-        today = datetime.now()
+        # Date range: today → +30 days (Timezone aware)
+        from django.utils import timezone
+        today = timezone.now()
         date_from = today.strftime('%Y%m%d')
         date_to = (today + timedelta(days=30)).strftime('%Y%m%d')
 
@@ -200,12 +200,11 @@ class Command(BaseCommand):
                             api_teams.append(t.get('team', {}))
 
             if not api_teams:
-                # Fallback to scoreboard endpoint if /teams endpoint is empty (e.g. Cricket)
+                # Fallback to scoreboard endpoint if /teams endpoint is empty
                 sb_url = f'{ESPN_BASE}/{slug}/scoreboard'
-                if sport_name != 'Cricket':
-                    date_from_sb = datetime.now().strftime('%Y%m%d')
-                    date_to_sb = (datetime.now() + timedelta(days=60)).strftime('%Y%m%d')
-                    sb_url += f'?dates={date_from_sb}-{date_to_sb}'
+                date_from_sb = datetime.now().strftime('%Y%m%d')
+                date_to_sb = (datetime.now() + timedelta(days=60)).strftime('%Y%m%d')
+                sb_url += f'?dates={date_from_sb}-{date_to_sb}'
                 sb_data = self._api_get(sb_url)
                 if sb_data:
                     for event in sb_data.get('events', []):
@@ -260,8 +259,7 @@ class Command(BaseCommand):
             # 2. Fetch fixtures
             self.stdout.write(f'  Fetching fixtures...')
             fixtures_url = f'{ESPN_BASE}/{slug}/scoreboard'
-            if sport_name != 'Cricket':
-                fixtures_url += f'?dates={date_from}-{date_to}'
+            fixtures_url += f'?dates={date_from}-{date_to}'
             fixtures_data = self._api_get(fixtures_url)
             
             events = fixtures_data.get('events', []) if fixtures_data else []
@@ -284,15 +282,33 @@ class Command(BaseCommand):
                 away_team = Team.objects.filter(name=away_name).first()
                 if not home_team or not away_team: continue
 
-                # Date
-                try: dt = datetime.strptime(event.get('date', '')[:16], '%Y-%m-%dT%H:%M')
-                except: dt = today + timedelta(days=1)
+                # Date parsing using robust django util
+                from django.utils.dateparse import parse_datetime
+                dt_str = event.get('date', '')
+                dt = parse_datetime(dt_str) if dt_str else None
+                if not dt:
+                    dt = today + timedelta(days=1)
+                elif dt.tzinfo is None:
+                    # If naive, assume UTC as per ESPN API standards
+                    from django.utils.timezone import make_aware
+                    import pytz
+                    dt = make_aware(dt, pytz.UTC)
+
+                # Status mapping from ESPN
+                api_status = event.get('status', {}).get('type', {}).get('name', '').lower()
+                status = 'scheduled'
+                if 'in_progress' in api_status or 'live' in api_status:
+                    status = 'live'
+                elif 'final' in api_status or 'post' in api_status:
+                    status = 'finished'
+                elif 'canceled' in api_status:
+                    status = 'cancelled'
 
                 Match.objects.update_or_create(
                     home_team=home_team,
                     away_team=away_team,
                     date_time=dt,
-                    defaults={'league': league_name, 'status': 'scheduled', 'venue': home_team.venue}
+                    defaults={'league': league_name, 'status': status, 'venue': home_team.venue}
                 )
                 count_matches += 1
             

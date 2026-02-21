@@ -805,7 +805,7 @@ header.main-header .header-sticky.active{
 	background-repeat: no-repeat;
 	background-position: center bottom;
 	background-size: cover;
-	padding: 195px 0 90px;
+	padding: 120px 0 60px;
 }
 
 .hero::before{
@@ -837,7 +837,7 @@ header.main-header .header-sticky.active{
 	background: url('../images/hero-bg.jpg') no-repeat;
 	background-position: center center;
 	background-size: cover;
-	padding: 245px 0 140px;
+	padding: 180px 0 100px;
 }
 
 .hero.hero-bg-image::before{
@@ -2478,7 +2478,7 @@ header.main-header .header-sticky.active{
 /************************************/
 
 .footer-box{
-	padding: 100px 0 0;
+	padding: 60px 0 0;
 }
 
 .footer-header{
@@ -2488,8 +2488,8 @@ header.main-header .header-sticky.active{
 	justify-content: space-between;
 	gap: 20px 30px;
 	border-bottom: 1px solid var(--dark-divider-color);
-	margin-bottom: 60px;
-	padding-bottom: 60px;
+	margin-bottom: 40px;
+	padding-bottom: 40px;
 }
 
 .footer-header .section-title{
@@ -2719,8 +2719,8 @@ header.main-header .header-sticky.active{
 
 .footer-copyright{
 	border-top: 1px solid var(--dark-divider-color);
-	padding: 40px 0;
-	margin-top: 60px;
+	padding: 30px 0;
+	margin-top: 40px;
 }
 
 .footer-copyright-text p{
@@ -6101,6 +6101,10 @@ header.main-header .header-sticky.active{
 		font-size: 30px;
 	}
 
+    .navbar {
+        padding: 10px 0;
+    }
+
 	.section-title h2{
 		font-size: 28px;
 	}
@@ -6678,6 +6682,86 @@ header.main-header .header-sticky.active{
 	.google-map iframe{
         height: 350px;
     }
+
+    /* Additional Mobile Fixes */
+    .hero {
+        padding: 120px 0 60px;
+    }
+    
+    .section-title h2 {
+        font-size: 24px;
+    }
+    
+    .btn-default {
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+
+    .match-card-modern {
+        margin-bottom: 20px;
+    }
+
+    .sidebar-widget {
+        padding: 15px;
+    }
+
+    .news-thumb {
+        width: 60px;
+        height: 50px;
+    }
+
+    .footer-header .section-title h2 {
+        font-size: 20px;
+        text-align: center;
+    }
+
+    .footer-newsletter-form {
+        padding-left: 0;
+        margin-top: 10px;
+    }
+
+    .about-footer-content p {
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .footer-links h3 {
+        margin-top: 20px;
+        margin-bottom: 10px;
+    }
+
+    .footer-contact-item {
+        margin-bottom: 15px;
+    }
+
+    /* Hero Buttons Responsiveness */
+    .hero-btn {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        width: 100%;
+    }
+    
+    .hero-btn .btn-default {
+        width: 100%;
+        text-align: center;
+        margin: 0 !important;
+    }
+
+    /* Grid layout fixes for low-res mobile */
+    .row.g-4 {
+        --bs-gutter-y: 20px;
+    }
+
+    /* Logo scaling */
+    .navbar-brand span {
+        font-size: 2rem !important;
+    }
+
+    /* Typography scaling */
+    h1 { font-size: 32px !important; }
+    h2 { font-size: 26px !important; }
+    h3 { font-size: 20px !important; }
 }
 
 /* --- Global Notifications System --- */
@@ -6802,98 +6886,3 @@ header.main-header .header-sticky.active{
     opacity: 0;
     margin-top: -70px; /* Collapse space */
 }
-
-/* --- Improved Mobile Responsiveness --- */
-@media only screen and (max-width: 991px) {
-    header.main-header {
-        position: fixed !important;
-        background: rgba(10, 12, 16, 0.95);
-        backdrop-filter: blur(10px);
-    }
-
-    .hero {
-        padding: 120px 0 60px !important;
-    }
-
-    .section-title h2 {
-        font-size: 32px !important;
-        line-height: 1.2 !important;
-    }
-
-    .match-grid {
-        grid-template-columns: 1fr !important;
-    }
-
-    .match-card-modern {
-        margin-bottom: 20px;
-    }
-
-    .dashboard-container {
-        padding: 20px 10px;
-    }
-}
-
-@media only screen and (max-width: 767px) {
-    .section-title h2 {
-        font-size: 28px !important;
-    }
-
-    .hero-content h1 {
-        font-size: 36px !important;
-        line-height: 1.1 !important;
-    }
-
-    .btn-default {
-        padding: 10px 20px !important;
-        font-size: 14px !important;
-    }
-
-    .match-card-body h5 {
-        font-size: 16px !important;
-    }
-
-    /* Footer adjustments for very small screens */
-    .footer-box {
-        padding: 40px 0 20px !important;
-    }
-
-    .footer-links h3 {
-        font-size: 16px !important;
-        margin-top: 15px;
-    }
-
-    .footer-copyright {
-        flex-direction: column;
-        gap: 15px;
-        text-align: center;
-    }
-
-    /* Dashboard Sidebar should come after content */
-    .dashboard-row {
-        flex-direction: column-reverse;
-    }
-
-    /* Hide decorative elements on mobile */
-    .hero::before, .hero::after {
-        display: none !important;
-    }
-}
-
-/* Fix for horizontal scrolling on mobile */
-body, html {
-    overflow-x: hidden;
-    width: 100%;
-}
-
-.container {
-    max-width: 100%;
-    padding-left: 15px;
-    padding-right: 15px;
-}
-
-/* Ensure images don't overflow */
-img {
-    max-width: 100%;
-    height: auto;
-}
-

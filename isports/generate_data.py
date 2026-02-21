@@ -214,22 +214,6 @@ DATA = {
                 {"name": "Lyon", "city": "Lyon", "venue": "Groupama Stadium"}
             ]
         },
-        {
-            "name": "Indian Premier League (IPL)",
-            "sport": "Cricket",
-            "teams": [
-                {"name": "Chennai Super Kings", "city": "Chennai", "venue": "M. A. Chidambaram Stadium"},
-                {"name": "Mumbai Indians", "city": "Mumbai", "venue": "Wankhede Stadium"},
-                {"name": "Royal Challengers Bengaluru", "city": "Bengaluru", "venue": "M. Chinnaswamy Stadium"},
-                {"name": "Kolkata Knight Riders", "city": "Kolkata", "venue": "Eden Gardens"},
-                {"name": "Sunrisers Hyderabad", "city": "Hyderabad", "venue": "Rajiv Gandhi International Cricket Stadium"},
-                {"name": "Rajasthan Royals", "city": "Jaipur", "venue": "Sawai Mansingh Stadium"},
-                {"name": "Gujarat Titans", "city": "Ahmedabad", "venue": "Narendra Modi Stadium"},
-                {"name": "Lucknow Super Giants", "city": "Lucknow", "venue": "BRSABV Ekana Cricket Stadium"},
-                {"name": "Delhi Capitals", "city": "New Delhi", "venue": "Arun Jaitley Stadium"},
-                {"name": "Punjab Kings", "city": "Mohali", "venue": "IS Bindra Stadium"}
-            ]
-        }
     ]
 }
 

@@ -140,7 +140,7 @@
                             <div class="sport-selection">
                                 {% for sport in all_sports %}
                                 <a href="?sport={{ sport }}" class="sport-tab {% if selected_sport == sport %}active{% endif %}">
-                                    {% if sport == 'Football' %}<i class="fas fa-futbol"></i>{% elif sport == 'Cricket' %}<i class="fas fa-baseball-bat-ball"></i>{% else %}<i class="fas fa-trophy"></i>{% endif %}
+                                    {% if sport == 'Football' %}<i class="fas fa-futbol"></i>{% else %}<i class="fas fa-trophy"></i>{% endif %}
                                     {{ sport }}
                                 </a>
                                 {% endfor %}

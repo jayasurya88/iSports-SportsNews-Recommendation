@@ -64,6 +64,9 @@
                                 <li class="nav-item"><a class="nav-link" href="{% if request.user.is_authenticated %}{% url 'user_dashboard' %}{% else %}{% url 'index' %}{% endif %}">Home</a></li>
                                 <li class="nav-item"><a class="nav-link" href="{% url 'events_list' %}">Events</a></li>
                                 <li class="nav-item"><a class="nav-link" href="{% url 'community_list' %}">Community</a></li>
+                                {% if request.user.is_authenticated %}
+                                <li class="nav-item"><a class="nav-link" href="{% url 'profile_view' %}">Profile</a></li>
+                                {% endif %}
                                 
                                 {% if request.user.is_authenticated %}
                                     {% if request.user.profile.role == 'admin' %}
@@ -148,76 +151,143 @@
 
     <!-- Footer Box Start -->
     <footer class="main-footer">
-        <div class="footer-box border-top border-secondary py-5" style="background: #0a0c10;">
+        <div class="footer-box dark-section">
             <div class="container">
-                <div class="row g-4 d-flex justify-content-between">
-                    <div class="col-lg-4 col-md-6 mb-4 mb-md-0">
-                        <div class="about-footer">
-                            <div class="footer-logo mb-3">
-                                <span style="font-family: 'Great Vibes', cursive; font-size: 2.2rem; color: #fff; letter-spacing: 1px;">iSports</span>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <!-- Footer Header Start -->
+                        <div class="footer-header">
+                            <!-- Section Title Start -->
+                            <div class="section-title">
+                                <h2 class="text-anime-style-2" data-cursor="-opaque">Subscribe for Exclusive Match Updates, News & Events!</h2>
                             </div>
-                            <p class="text-white-50 small mb-4 pr-lg-5">The ultimate platform for sports enthusiasts. Experience the game like never before, from live updates to fan communities.</p>
+                            <!-- Section Title End -->
+
+                            <!-- Footer Newsletter Form Start -->
+                            <div class="footer-newsletter-form wow fadeInUp">
+                                <form id="newslettersForm" action="#" method="POST">
+                                    <div class="form-group">
+                                        <input type="email" name="mail" class="form-control"  id="mail" placeholder="Enter your email" required>
+                                        <button type="submit" class="btn-default btn-highlighted">subscribe</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <!-- Footer Newsletter Form End -->
+                        </div>
+                        <!-- Footer Header End -->
+                    </div>
+
+                    <div class="col-lg-4">
+                        <!-- About Footer Start -->
+                        <div class="about-footer">
+                            <div class="footer-logo">
+                                <span style="font-family: 'Great Vibes', cursive; font-size: 2.5rem; color: #fff; font-weight: normal; letter-spacing: 1px;">iSports</span>
+                            </div>
+                            <div class="about-footer-content">
+                                <p>iSports is the ultimate platform for sports enthusiasts. Join us to experience the game like never before, from booking tickets to predicting outcomes.</p>
+                            </div>
+                            <!-- Footer Social Link Start -->
                             <div class="footer-social-links">
-                                <ul class="d-flex gap-3 list-unstyled">
-                                    <li><a href="#" class="text-white-50 h5"><i class="fa-brands fa-x-twitter"></i></a></li>
-                                    <li><a href="#" class="text-white-50 h5"><i class="fa-brands fa-facebook-f"></i></a></li>
-                                    <li><a href="#" class="text-white-50 h5"><i class="fa-brands fa-instagram"></i></a></li>
-                                    <li><a href="#" class="fa-brands fa-linkedin-in text-white-50 h5"></a></li>
+                                <h3>Follow Us On:</h3>
+                                <ul>
+                                    <li><a href="#"><i class="fa-brands fa-pinterest-p"></i></a></li>
+                                    <li><a href="#"><i class="fa-brands fa-x-twitter"></i></a></li>
+                                    <li><a href="#"><i class="fa-brands fa-facebook-f"></i></a></li>
+                                    <li><a href="#"><i class="fa-brands fa-instagram"></i></a></li>
                                 </ul>
                             </div>
+                            <!-- Footer Social Link End -->
                         </div>
+                        <!-- About Footer End -->
                     </div>
 
-                    <div class="col-lg-2 col-6 col-md-3">
-                        <div class="footer-links">
-                            <h3 class="text-white mb-3 small fw-bold text-uppercase">Navigation</h3>
-                            <ul class="list-unstyled">
-                                <li class="mb-2"><a href="{% url 'index' %}" class="text-white-50 small hover-white">Home</a></li>
-                                <li class="mb-2"><a href="{% url 'events_list' %}" class="text-white-50 small hover-white">Events</a></li>
-                                <li class="mb-2"><a href="{% url 'community_list' %}" class="text-white-50 small hover-white">Community</a></li>
-                                <li class="mb-2"><a href="{% url 'latest_news' %}" class="text-white-50 small hover-white">Latest News</a></li>
+                    <div class="col-lg-2 col-md-3">
+                        <!-- Footer Links Start -->
+                        <div class="footer-links footer-menu">
+                            <h3>quick links</h3>
+                            <ul>
+                                <li><a href="index-2.html">home</a></li>
+                                <li><a href="about.html">about us</a></li>
+                                <li><a href="services.html">services</a></li>
+                                <li><a href="blog.html">Blog</a></li>
                             </ul>
                         </div>
+                        <!-- Footer Links End -->
                     </div>
-
-                    <div class="col-lg-2 col-6 col-md-3">
+                    
+                    <div class="col-lg-3 col-md-4">
+                        <!-- Footer Links Start -->
                         <div class="footer-links">
-                            <h3 class="text-white mb-3 small fw-bold text-uppercase">Services</h3>
-                            <ul class="list-unstyled">
-                                <li class="mb-2"><a href="#" class="text-white-50 small hover-white">Ticket Booking</a></li>
-                                <li class="mb-2"><a href="#" class="text-white-50 small hover-white">Live Scores</a></li>
-                                <li class="mb-2"><a href="#" class="text-white-50 small hover-white">Fan Forums</a></li>
-                                <li class="mb-2"><a href="#" class="text-white-50 small hover-white">Insights</a></li>
+                            <h3>Services</h3>
+                            <ul>
+                                <li><a href="#">Ticket Booking</a></li>
+                                <li><a href="#">Event Management</a></li>
+                                <li><a href="#">Fan Forums</a></li>
+                                <li><a href="#">Live Scores</a></li>
                             </ul>
                         </div>
+                        <!-- Footer Links End -->
                     </div>
 
-                    <div class="col-lg-4 col-md-12 mt-md-4 mt-lg-0">
-                        <div class="footer-newsletter">
-                            <h3 class="text-white mb-3 small fw-bold text-uppercase">Stay Updated</h3>
-                            <p class="text-white-50 small mb-3">Subscribe for exclusive match updates and news.</p>
-                            <form action="#" method="POST" class="position-relative">
-                                <input type="email" placeholder="Email Address" class="form-control bg-dark border-0 rounded-pill py-2 px-3 text-white small" style="background: rgba(255,255,255,0.05) !important;">
-                                <button type="submit" class="btn btn-sm btn-primary rounded-pill position-absolute" style="top: 4px; right: 4px; background: var(--accent-color); border: none;">Join</button>
-                            </form>
+                    <div class="col-lg-3 col-md-5">
+                        <!-- Footer Contact Details Start -->
+                        <div class="footer-links footer-contact-details">
+                            <h3>Club Information</h3>
+                            <!-- Footer Contact Item Start -->
+                            <div class="footer-contact-item">
+                                <div class="icon-box">
+                                    <img src="{% static 'images/icon-location-white.svg' %}" alt="">
+                                </div>
+                                <div class="footer-contact-item-content">
+                                    <h3>Our Location</h3>
+                                    <p>123 Sports Avenue, Tech City, USA</p>
+                                </div>
+                            </div>
+                            <!-- Footer Contact Item End -->
+
+                            <!-- Footer Contact Item Start -->
+                            <div class="footer-contact-item">
+                                <div class="icon-box">
+                                    <img src="{% static 'images/icon-phone-white.svg' %}" alt="">
+                                </div>
+                                <div class="footer-contact-item-content">
+                                    <h3>Phone Number</h3>
+                                    <p><a href="tel:+91123456789">+1 (555) 123-4567</a></p>
+                                </div>
+                            </div>
+                            <!-- Footer Contact Item End -->
                         </div>
-                    </div>
-                </div>
-
-                <div class="footer-copyright mt-5 pt-4 border-top border-secondary text-center text-md-between d-flex flex-column flex-md-row justify-content-between align-items-center">
-                    <p class="text-white-50 mb-0 small">&copy; 2026 iSports Platform. All Rights Reserved.</p>
-                    <div class="footer-privacy-policy mt-3 mt-md-0">
-                        <ul class="list-unstyled d-flex gap-4 mb-0">
-                            <li><a href="#" class="text-white-50 small">Terms</a></li>
-                            <li><a href="#" class="text-white-50 small">Privacy</a></li>
-                            <li><a href="#" class="text-white-50 small">Cookies</a></li>
-                        </ul>
+                        <!-- Footer Contact Details End -->
                     </div>
                 </div>
             </div>
+
+            <!-- Footer Copyright Start -->
+            <div class="footer-copyright">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <div class="footer-copyright-text">
+                                <p>Copyright © 2025 All Rights Reserved.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <!-- Footer Privacy Policy Start -->
+                            <div class="footer-privacy-policy">
+                                <ul>
+                                    <li><a href="#">terms & condition</a></li>
+                                    <li><a href="#">privacy policy</a></li>
+                                </ul>
+                            </div>
+                            <!-- Footer Privacy Policy End -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer Copyright End -->
         </div>
     </footer>
-    <!-- Footer End -->
     <!-- Footer End -->
 
     <!-- Jquery Library File -->
