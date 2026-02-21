@@ -92,6 +92,14 @@
                             <label class="form-label">Date & Time</label>
                             <input type="datetime-local" name="date_time" class="form-control" required>
                         </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ticket Price (₹)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" name="ticket_price" class="form-control" step="0.01" value="50.00" required>
+                            </div>
+                            <small class="text-muted">Standard entry fee for this event.</small>
+                        </div>
                         {% else %}
                         <div class="col-md-12 mb-2">
                             <h6 class="fw-bold text-primary border-bottom pb-2"><i class="fas fa-broadcast-tower me-2"></i>Live Match Management</h6>
@@ -124,6 +132,13 @@
                             <label class="form-label">Away Score</label>
                             <input type="number" name="away_score" class="form-control" value="{{ match.away_score }}">
                         </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Ticket Price (₹)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" name="ticket_price" class="form-control" step="0.01" value="{{ match.ticket_price }}" required>
+                            </div>
+                        </div>
                         {% endif %}
                     </div>
                 </div>
@@ -143,6 +158,10 @@
                     <div class="mb-4" id="section-injuries">
                         <label class="form-label fw-bold">Injury Report & Team News</label>
                         <textarea name="injury_news" class="form-control" rows="3" placeholder="Latest injury updates or team changes...">{{ match.injury_news }}</textarea>
+                    </div>
+                    <div class="mb-4" id="section-events">
+                        <label class="form-label fw-bold">Match Events & Goals</label>
+                        <textarea name="match_events" class="form-control" rows="4" placeholder="Enter goals and incidents (e.g. 23' - Goal by Player Name)...">{{ match.match_events }}</textarea>
                     </div>
                     <div class="mb-4" id="section-insights">
                         <label class="form-label fw-bold">Pre-Game Insights</label>

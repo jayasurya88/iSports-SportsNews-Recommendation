@@ -502,6 +502,13 @@
                                 <p class="text-white mb-0 small">{{ alert.message }}</p>
                             </div>
                             {% endfor %}
+                            {% if match.match_events %}
+                            <div class="p-3 mb-2 rounded-3" style="background: rgba(25,135,84,0.1); border-left: 3px solid #198754;">
+                                <small class="text-success text-uppercase fw-bold d-block">Goal Scorers & Events</small>
+                                <p class="text-white mb-0 small">{{ match.match_events|linebreaks }}</p>
+                            </div>
+                            {% endif %}
+                            
                             {% if match.injury_news %}
                             <div class="p-3 rounded-3" style="background: rgba(220,53,69,0.1); border-left: 3px solid #dc3545;">
                                 <small class="text-danger text-uppercase fw-bold d-block">Injury Update</small>
@@ -510,7 +517,7 @@
                             {% endif %}
                         </div>
                         {% else %}
-                        <p class="text-white-50 small">No critical alerts or injury news at this time.</p>
+                        <p class="text-white-50 small">No critical alerts, goals, or injury news at this time.</p>
                         {% endif %}
                     </div>
                 </div>

@@ -57,6 +57,7 @@ urlpatterns = [
     path('admin-dashboard/sync/', views.sync_sports_data, name='sync_sports_data'),
     path('admin-dashboard/sync-rosters/', views.sync_sports_rosters, name='sync_sports_rosters'),
     path('admin-dashboard/sync-news/', views.sync_sports_news, name='sync_sports_news'),
+    path('admin-dashboard/transactions/', views.admin_transactions, name='admin_transactions'),
     path('search/', views.search_results, name='search_results'),
     path('community/', views.community_list, name='community_list'),
     path('community/create/', views.create_community, name='create_community'),

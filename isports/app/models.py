@@ -58,6 +58,8 @@ class Match(models.Model):
     pre_game_insights = models.TextField(blank=True)
     highlights_url = models.URLField(blank=True, null=True)
     exclusive_media = models.FileField(upload_to='match_media/', blank=True, null=True)
+    ticket_price = models.DecimalField(max_digits=10, decimal_places=2, default=50.00)
+    match_events = models.TextField(blank=True, help_text="List scorers and match events (e.g., Goal: Player Name 23')")
     
     class Meta:
         verbose_name_plural = "Matches"
@@ -149,6 +151,7 @@ class UserProfile(models.Model):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='user')
     needs_password_change = models.BooleanField(default=False)
     onboarding_completed = models.BooleanField(default=False)
+    is_premium = models.BooleanField(default=False)
     view_password = models.CharField(max_length=128, blank=True, null=True) # For admin visibility (Dev only)
     
     # Preference Engine Data

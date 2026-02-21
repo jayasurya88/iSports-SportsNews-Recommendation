@@ -242,13 +242,13 @@
                     
                     <div class="d-flex justify-content-between text-white mb-2">
                         <span>Standard Ticket (x1)</span>
-                        <span>$50.00</span>
+                        <span>₹{{ match.ticket_price|floatformat:2 }}</span>
                     </div>
                     <div class="d-flex justify-content-between text-white-50 small mb-2">
                         <span>Booking Fee</span>
-                        <span>$2.50</span>
+                        <span>₹{{ booking_fee|floatformat:2 }}</span>
                     </div>
-                    <div class="price-tag">$52.50</div>
+                    <div class="price-tag">₹{{ total_price|floatformat:2 }}</div>
                 </div>
                 
                 <div class="d-flex align-items-center text-white-50 small">
@@ -324,7 +324,7 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn-default btn-pay">Pay $52.50</button>
+                        <button type="submit" class="btn-default btn-pay">Pay ₹{{ total_price|floatformat:2 }}</button>
                     </form>
                 </div>
             </div>

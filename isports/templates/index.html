@@ -35,7 +35,7 @@
 
                         <!-- Hero Button Start -->
                         <div class="hero-btn wow fadeInUp" data-wow-delay="0.6s">
-                            <a href="#" class="btn-default btn-highlighted">Browse Events</a>
+                            <a href="{% url 'events_list' %}" class="btn-default btn-highlighted">Browse Events</a>
                             <a href="#" class="btn-default btn-highlighted btn-transparent">Join Community</a>
                         </div>
                         <!-- Hero Button End -->
@@ -376,6 +376,84 @@
         </div>
     </div>
     <!-- Our Services Section End -->
+    
+    <!-- Upcoming Events Section Start -->
+    <div class="upcoming-events py-5">
+        <div class="container">
+            <div class="row section-row mb-5">
+                <div class="col-lg-12">
+                    <div class="section-title section-title-center">
+                        <div class="section-bg-title wow fadeInUp">
+                            <span>Live & Upcoming</span>
+                        </div>
+                        <h3 class="wow fadeInUp" data-wow-delay="0.2s">Upcoming Events</h3>
+                        <h2 class="text-anime-style-2" data-cursor="-opaque">Don't Miss the <span>Big Games</span></h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                {% for match in upcoming_matches %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="service-item p-4 border rounded shadow-sm text-center bg-dark text-white h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="badge bg-danger rounded-pill px-3">{{ match.league }}</span>
+                            <small class="text-white-50">{{ match.date_time|date:"d M, H:i" }}</small>
+                        </div>
+                        
+                        <div class="match-teams-display mb-4">
+                            <div class="row align-items-center">
+                                <div class="col-5">
+                                    <div class="team-logo mb-2">
+                                        {% if match.home_team.logo %}
+                                            <img src="{{ match.home_team.logo.url }}" alt="" height="50">
+                                        {% else %}
+                                            <div class="d-inline-block bg-secondary rounded-circle" style="width: 50px; height: 50px; line-height: 50px;">{{ match.home_team.name|first }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <h6 class="mb-0 small fw-bold">{{ match.home_team.name }}</h6>
+                                </div>
+                                <div class="col-2">
+                                    <span class="text-accent h5">VS</span>
+                                </div>
+                                <div class="col-5">
+                                    <div class="team-logo mb-2">
+                                        {% if match.away_team.logo %}
+                                            <img src="{{ match.away_team.logo.url }}" alt="" height="50">
+                                        {% else %}
+                                            <div class="d-inline-block bg-secondary rounded-circle" style="width: 50px; height: 50px; line-height: 50px;">{{ match.away_team.name|first }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <h6 class="mb-0 small fw-bold">{{ match.away_team.name }}</h6>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="venue-info mb-3">
+                            <i class="fas fa-map-marker-alt text-accent me-1 small"></i>
+                            <span class="text-white-50 small">{{ match.venue.name }}, {{ match.venue.city }}</span>
+                        </div>
+
+                        <div class="mt-auto">
+                            <a href="{% url 'match_detail' match.id %}" class="btn-default btn-highlighted w-100 py-2">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <p class="text-white-50">No upcoming events scheduled at the moment.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="row mt-5">
+                <div class="col-lg-12 text-center">
+                    <a href="{% url 'events_list' %}" class="btn-default">View All Events</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Upcoming Events Section End -->
 
     <!-- What We Do Section Start -->
     <div class="what-we-do">

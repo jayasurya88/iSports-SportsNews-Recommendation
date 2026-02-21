@@ -85,13 +85,15 @@
         </div>
         
         <div class="col-lg-3 col-md-6">
-            <div class="stat-card" style="border-left-color: #28a745;">
-                <div class="stat-icon" style="background-color: rgba(40, 167, 69, 0.1); color: #28a745;">
-                    <i class="fas fa-dollar-sign"></i>
+            <a href="{% url 'admin_transactions' %}" class="text-decoration-none">
+                <div class="stat-card" style="border-left-color: #28a745; cursor: pointer;">
+                    <div class="stat-icon" style="background-color: rgba(40, 167, 69, 0.1); color: #28a745;">
+                        <i class="fas fa-indian-rupee-sign"></i>
+                    </div>
+                    <h3>₹{{ total_revenue|floatformat:2|default:"0.00" }}</h3>
+                    <p>Total Revenue</p>
                 </div>
-                <h3>${{ total_revenue|floatformat:2|default:"0.00" }}</h3>
-                <p>Total Revenue</p>
-            </div>
+            </a>
         </div>
     </div>
     <!-- Stats Row End -->

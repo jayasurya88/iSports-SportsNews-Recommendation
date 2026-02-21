@@ -72,7 +72,7 @@
                         {% for item in revenue_data %}
                         <tr>
                             <td>{{ item.month|date:"F Y" }}</td>
-                            <td class="fw-bold">${{ item.total|floatformat:2 }}</td>
+                            <td class="fw-bold">₹{{ item.total|floatformat:2 }}</td>
                             <td>
                                 <span class="trend-up"><i class="fas fa-caret-up"></i> +12%</span>
                             </td>

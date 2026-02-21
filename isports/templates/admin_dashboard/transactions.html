@@ -1,0 +1,119 @@
+{% extends 'admin_dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}iSports Admin - Transactions{% endblock %}
+{% block page_title %}TICKET TRANSACTIONS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="content-box">
+            <div class="box-header">
+                <h4 class="box-title">All Membership and Ticket Sales</h4>
+                <div class="header-tools">
+                    <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
+                        <i class="fas fa-print me-1"></i> Print Report
+                    </button>
+                    <button class="btn btn-sm btn-success ms-2">
+                        <i class="fas fa-file-excel me-1"></i> Export CSV
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Transaction ID</th>
+                            <th>Date & Time</th>
+                            <th>Customer</th>
+                            <th>Match / Event</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in transactions %}
+                        <tr>
+                            <td>
+                                <code class="text-primary fw-bold">{{ t.ticket_id }}</code>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <span>{{ t.purchase_date|date:"d M Y" }}</span>
+                                    <small class="text-muted">{{ t.purchase_date|date:"H:i A" }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light rounded-circle p-2 me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                        <i class="fas fa-user text-muted small"></i>
+                                    </div>
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-bold">{{ t.user.get_full_name|default:t.user.username }}</span>
+                                        <small class="text-muted">{{ t.user.email }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-column">
+                                    <span class="text-truncate" style="max-width: 200px;">{{ t.match.home_team.name }} vs {{ t.match.away_team.name }}</span>
+                                    <small class="text-muted">{{ t.match.venue.name }}, {{ t.match.venue.city }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-dark">₹{{ t.total_price|floatformat:2 }}</span>
+                            </td>
+                            <td>
+                                {% if t.status == 'active' %}
+                                <span class="badge bg-success bg-opacity-10 text-success p-2 rounded-3 border border-success border-opacity-25" style="font-size: 10px;">
+                                    <i class="fas fa-check-circle me-1"></i> SUCCESSFUL
+                                </span>
+                                {% elif t.status == 'used' %}
+                                <span class="badge bg-info bg-opacity-10 text-info p-2 rounded-3 border border-info border-opacity-25" style="font-size: 10px;">
+                                    <i class="fas fa-ticket-alt me-1"></i> REDEEMED
+                                </span>
+                                {% else %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger p-2 rounded-3 border border-danger border-opacity-25" style="font-size: 10px;">
+                                    <i class="fas fa-times-circle me-1"></i> {{ t.status|upper }}
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light p-1 px-2" type="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                        <li><a class="dropdown-item py-2" href="#"><i class="fas fa-eye me-2 text-primary"></i> View Detail</a></li>
+                                        <li><a class="dropdown-item py-2" href="#"><i class="fas fa-print me-2 text-muted"></i> Receipt</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item py-2 text-danger" href="#"><i class="fas fa-undo me-2"></i> Refund Transaction</a></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fas fa-receipt fa-3x mb-3 opacity-25"></i>
+                                    <p>No transactions found in the system.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if transactions.has_other_pages %}
+            <div class="box-footer mt-4 pt-4 border-top">
+                <!-- Pagination could go here -->
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

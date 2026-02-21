@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from .models import Team, Match, Venue, UserProfile, NewsArticle, Feedback, Player, Poll, Alert, CommunityGroup, CommunityMessage, Ticket
 from .forms import UserUpdateForm, ProfileUpdateForm, FeedbackForm, CommunityGroupForm
-from django.db.models import Q
+from django.db.models import Q, Sum
 import json
 import time
 import operator
@@ -81,7 +81,11 @@ def sync_news_for_leagues(leagues_list):
 
 # Create your views here.
 def index(request):
-    return render(request, 'index.html')
+    upcoming_matches = Match.objects.filter(status='scheduled').order_by('date_time')[:6]
+    context = {
+        'upcoming_matches': upcoming_matches,
+    }
+    return render(request, 'index.html', context)
 
 def login_view(request):
     if request.method == 'POST':
@@ -92,7 +96,7 @@ def login_view(request):
         
         if user is not None:
             login(request, user)
-            messages.success(request, f"Welcome back, {user.username}!")
+            
             
             # Check profile role
             from app.models import UserProfile
@@ -342,6 +346,15 @@ def admin_users(request):
 
 @login_required
 @user_passes_test(is_admin)
+def admin_transactions(request):
+    """
+    View for admin to see all transactions (ticket purchases).
+    """
+    transactions = Ticket.objects.all().select_related('user', 'match', 'match__home_team', 'match__away_team', 'match__venue').order_by('-purchase_date')
+    return render(request, 'admin_dashboard/transactions.html', {'transactions': transactions})
+
+@login_required
+@user_passes_test(is_admin)
 def admin_feedback_delete(request, feedback_id):
     feedback = get_object_or_404(Feedback, id=feedback_id)
     feedback.delete()
@@ -535,7 +548,7 @@ def organizer_dashboard(request):
         'live_events': organized_matches.filter(status='live').count(),
         'upcoming_events': organized_matches.filter(status='scheduled').count(),
         'recent_events': organized_matches.order_by('-date_time')[:5],
-        'total_revenue': organized_matches.filter(status='finished').count() * 1000, # Placeholder logic
+        'total_revenue': Ticket.objects.filter(match__organizer=request.user).aggregate(Sum('total_price'))['total_price__sum'] or 0,
     }
     return render(request, 'organizer_dashboard/dashboard.html', context)
 
@@ -564,6 +577,7 @@ def organizer_event_create(request):
         venue_id = request.POST.get('venue')
         date_time = request.POST.get('date_time')
         league = request.POST.get('league')
+        ticket_price = request.POST.get('ticket_price', 50.00)
         
         if home_team_id == away_team_id:
             messages.error(request, "Home Team and Away Team cannot be the same.")
@@ -586,6 +600,7 @@ def organizer_event_create(request):
             venue=venue,
             date_time=date_time,
             league=league,
+            ticket_price=ticket_price,
             organizer=request.user
         )
         
@@ -616,6 +631,8 @@ def organizer_event_edit(request, match_id):
         # Update basic info
         match.status = request.POST.get('status')
         match.league = request.POST.get('league')
+        match.ticket_price = request.POST.get('ticket_price', 50.00)
+        match.match_events = request.POST.get('match_events', '')
         match.home_score = request.POST.get('home_score', 0)
         match.away_score = request.POST.get('away_score', 0)
         
@@ -810,8 +827,15 @@ def user_dashboard(request):
     # Compute followed leagues count for sidebar
     followed_leagues_count = favorite_teams.values_list('league', flat=True).distinct().count() if favorite_teams.exists() else 0
 
-    # Fetch news from DB
-    news_articles = NewsArticle.objects.all()[:4]
+    # Fetch news from DB - Ordered by latest, prioritized by favorite leagues
+    if favorite_teams.exists():
+        fav_leagues = favorite_teams.values_list('league', flat=True).distinct()
+        news_articles = NewsArticle.objects.filter(category__in=fav_leagues).order_by('-published_at')[:4]
+        # Fallback if no specific league news found
+        if not news_articles.exists():
+            news_articles = NewsArticle.objects.all().order_by('-published_at')[:4]
+    else:
+        news_articles = NewsArticle.objects.all().order_by('-published_at')[:4]
 
     context = {
         'favorite_teams': favorite_teams,
@@ -824,7 +848,6 @@ def user_dashboard(request):
     return render(request, 'user_dashboard.html', context)
 
 
-@login_required
 def events_list(request):
     """View to list all upcoming sports events/matches."""
     query = request.GET.get('q', '')
@@ -855,7 +878,6 @@ def events_list(request):
     return render(request, 'events_list.html', context)
 
 
-@login_required
 def match_detail(request, match_id):
     """View details for a specific match/event."""
     match = get_object_or_404(Match.objects.select_related('home_team', 'away_team', 'venue'), id=match_id)
@@ -1040,8 +1062,13 @@ def manage_favorites(request):
 def payment_mock_view(request, match_id):
     """View to display mock payment page for a match."""
     match = get_object_or_404(Match, id=match_id)
+    ticket_price = match.ticket_price
+    booking_fee = float(ticket_price) * 0.05
+    total_price = float(ticket_price) + booking_fee
     context = {
         'match': match,
+        'booking_fee': booking_fee,
+        'total_price': total_price
     }
     return render(request, 'payment_mock.html', context)
 
@@ -1056,10 +1083,12 @@ def process_payment(request, match_id):
         # Generate a unique ticket ID
         ticket_code = uuid.uuid4().hex[:12].upper()
         
+        total_price = float(match.ticket_price) * 1.05 # Price + 5% fee
+        
         Ticket.objects.create(
             user=request.user,
             match=match,
-            total_price=52.50, # Hardcoded for mock
+            total_price=total_price,
             ticket_id=ticket_code,
             seat_section='Standard',
             status='active'
@@ -1160,8 +1189,12 @@ def latest_news(request):
     if favorite_teams.exists():
         favorite_leagues = favorite_teams.values_list('league', flat=True).distinct()
         news_articles = NewsArticle.objects.filter(category__in=favorite_leagues).order_by('-published_at')
+        
+        # If no news for favorites, fallback to general news
+        if not news_articles.exists():
+            news_articles = NewsArticle.objects.all().order_by('-published_at')
     else:
-        news_articles = NewsArticle.objects.none()
+        news_articles = NewsArticle.objects.all().order_by('-published_at')
         
     context = {
         'news_articles': news_articles
