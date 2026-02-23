@@ -80,6 +80,14 @@ urlpatterns = [
     path('organizer-dashboard/events/polls/<int:match_id>/', views.organizer_polls, name='organizer_polls'),
     path('auth/change-password/', views.change_password_required, name='change_password_required'),
     path('ajax/load-teams/', views.load_teams, name='ajax_load_teams'),
+
+    # Team & Player Management (Admin + Organizer)
+    path('admin-dashboard/teams/', views.admin_teams, name='admin_teams'),
+    path('admin-dashboard/teams/<int:team_id>/edit/', views.admin_team_edit, name='admin_team_edit'),
+    path('admin-dashboard/teams/<int:team_id>/players/', views.admin_team_players, name='admin_team_players'),
+    path('admin-dashboard/teams/<int:team_id>/players/add/', views.admin_player_add, name='admin_player_add'),
+    path('admin-dashboard/players/<int:player_id>/edit/', views.admin_player_edit, name='admin_player_edit'),
+    path('admin-dashboard/players/<int:player_id>/delete/', views.admin_player_delete, name='admin_player_delete'),
 ]
 
 if settings.DEBUG:

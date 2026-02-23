@@ -404,15 +404,15 @@
                     <span class="text-white-50 small">Curated matches based on your interests</span>
                 </div>
                 <div class="filter-group">
-                    <button class="filter-btn active">All</button>
-                    <button class="filter-btn">Live</button>
-                    <button class="filter-btn">Upcoming</button>
+                    <button id="filter-all" class="filter-btn active">All</button>
+                    <button id="filter-live" class="filter-btn">Live</button>
+                    <button id="filter-upcoming" class="filter-btn">Upcoming</button>
                 </div>
             </div>
 
-            <div class="match-grid mb-5">
+            <div class="match-grid mb-5" id="recommended-matches-grid">
                 {% for match in recommended_matches %}
-                <div class="match-card-modern fade-in-up" style="animation-delay: 0.{{ forloop.counter }}s;">
+                <div class="match-card-modern fade-in-up filterable-match" data-status="{{ match.status }}" style="animation-delay: 0.{{ forloop.counter }}s;">
                     <div class="match-card-header">
                         <span class="text-uppercase" style="letter-spacing: 1px; font-size: 11px;">{{ match.league }}</span>
                         {% if match.status == 'live' %}
@@ -465,6 +465,11 @@
                      </div>
                 </div>
                 {% endfor %}
+            </div>
+
+            <div id="no-filtered-results" class="empty-state" style="display: none;">
+                <i class="fas fa-search"></i>
+                <p>No matches found in this category.</p>
             </div>
 
             {% if suggested_events %}
@@ -635,4 +640,49 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const matches = document.querySelectorAll('.filterable-match');
+    const noResults = document.getElementById('no-filtered-results');
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Update active button
+            filterBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            const filterType = this.id.replace('filter-', '');
+            let visibleCount = 0;
+
+            matches.forEach(match => {
+                const status = match.getAttribute('data-status');
+                
+                if (filterType === 'all') {
+                    match.style.display = 'block';
+                    visibleCount++;
+                } else if (filterType === 'live' && status === 'live') {
+                    match.style.display = 'block';
+                    visibleCount++;
+                } else if (filterType === 'upcoming' && status === 'scheduled') {
+                    match.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    match.style.display = 'none';
+                }
+            });
+
+            // Show "No matches found" if count is 0
+            if (visibleCount === 0) {
+                noResults.style.display = 'block';
+            } else {
+                noResults.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

@@ -149,7 +149,11 @@
                                     {% endif %}
                                 </div>
                                 <div class="col-md-2 text-center text-white-50">
-                                    VS
+                                    {% if match.status == 'live' %}
+                                        <span class="text-accent fw-bold h5 mb-0" style="letter-spacing: 2px;">{{ match.home_score }} - {{ match.away_score }}</span>
+                                    {% else %}
+                                        VS
+                                    {% endif %}
                                 </div>
                                 <div class="col-md-5 text-start">
                                     {% if match.away_team.logo %}

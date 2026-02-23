@@ -125,11 +125,11 @@
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Home Score</label>
+                            <label class="form-label">{{ match.home_team.name }} Score</label>
                             <input type="number" name="home_score" class="form-control" value="{{ match.home_score }}">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Away Score</label>
+                            <label class="form-label">{{ match.away_team.name }} Score</label>
                             <input type="number" name="away_score" class="form-control" value="{{ match.away_score }}">
                         </div>
                         <div class="col-md-4">

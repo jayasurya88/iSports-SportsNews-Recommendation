@@ -10,7 +10,8 @@ import json
 import time
 import operator
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timedelta
+from django.utils import timezone
 from functools import reduce
 from django.core.cache import cache
 
@@ -80,8 +81,19 @@ def sync_news_for_leagues(leagues_list):
             print(f"Error syncing news: {e}")
 
 # Create your views here.
+from django.db.models import Case, When, Value, IntegerField
+
 def index(request):
-    upcoming_matches = Match.objects.filter(status='scheduled').order_by('date_time')[:6]
+    upcoming_matches = Match.objects.filter(
+        Q(status='live') | Q(status='scheduled', date_time__gte=timezone.now())
+    ).annotate(
+        status_priority=Case(
+            When(status='live', then=Value(1)),
+            When(status='scheduled', then=Value(2)),
+            default=Value(3),
+            output_field=IntegerField(),
+        )
+    ).order_by('status_priority', 'date_time')[:6]
     context = {
         'upcoming_matches': upcoming_matches,
     }
@@ -228,10 +240,12 @@ def admin_dashboard(request):
     total_matches = Match.objects.filter(status='scheduled').count()
     total_sales = Ticket.objects.count()
     total_revenue = Ticket.objects.aggregate(Sum('total_price'))['total_price__sum'] or 0
+    total_premium = UserProfile.objects.filter(is_premium=True).count()
     recent_teams = Team.objects.all().order_by('-id')[:5]
     
     return render(request, 'admin_dashboard/dashboard.html', {
         'total_users': total_users,
+        'total_premium': total_premium,
         'total_teams': total_teams,
         'total_matches': total_matches,
         'total_sales': total_sales,
@@ -339,9 +353,11 @@ def admin_feedback(request):
 def admin_users(request):
     organizers = User.objects.filter(is_superuser=False, profile__role='organizer').order_by('-date_joined')
     regular_users = User.objects.filter(is_superuser=False, profile__role='user').order_by('-date_joined')
+    premium_users = User.objects.filter(is_superuser=False, profile__is_premium=True).order_by('-date_joined')
     return render(request, 'admin_dashboard/users_admin.html', {
         'organizers': organizers,
-        'regular_users': regular_users
+        'regular_users': regular_users,
+        'premium_users': premium_users
     })
 
 @login_required
@@ -415,8 +431,8 @@ def sync_sports_data(request):
     def d_sync():
         try:
             cache.set('sports_sync_running', True, 300) # Expire in 5 mins safety
-            # We use quick=True for faster UI feedback in prototype
-            call_command('seed_sports_data', quick=True)
+            # Seed all configured leagues
+            call_command('seed_sports_data')
         except Exception as e:
             print(f"Sync Error: {e}")
         finally:
@@ -555,16 +571,17 @@ def organizer_dashboard(request):
 @user_passes_test(is_organizer)
 def organizer_events_list(request):
     query = request.GET.get('q')
-    matches = Match.objects.all()
+    # Filter for future/current matches only
+    matches = Match.objects.filter(date_time__gte=timezone.now())
     
     if query:
         matches = matches.filter(
             Q(home_team__name__icontains=query) | 
             Q(away_team__name__icontains=query) |
             Q(league__icontains=query)
-        )
+        ).distinct()
         
-    matches = matches.order_by('-date_time')
+    matches = matches.order_by('date_time')
     return render(request, 'organizer_dashboard/events/list.html', {'matches': matches, 'query': query})
 
 @login_required
@@ -783,8 +800,15 @@ def user_dashboard(request):
         recommended_matches = list(
             Match.objects.filter(
                 Q(home_team__in=favorite_teams) | Q(away_team__in=favorite_teams),
-                status__in=['scheduled', 'live']
-            ).select_related('home_team', 'away_team', 'venue').order_by('date_time')[:5]
+                Q(status='live') | Q(status='scheduled', date_time__gte=timezone.now())
+            ).select_related('home_team', 'away_team', 'venue').annotate(
+                status_priority=Case(
+                    When(status='live', then=Value(1)),
+                    When(status='scheduled', then=Value(2)),
+                    default=Value(3),
+                    output_field=IntegerField(),
+                )
+            ).order_by('status_priority', 'date_time')[:5]
         )
         
         # --- Tier 2: Other matches in followed leagues ---
@@ -796,9 +820,18 @@ def user_dashboard(request):
                 Match.objects.filter(
                     league__in=fav_leagues,
                     status__in=['scheduled', 'live']
+                ).filter(
+                    Q(status='live') | Q(status='scheduled', date_time__gte=timezone.now())
                 ).exclude(
                     id__in=already_shown_ids
-                ).select_related('home_team', 'away_team', 'venue').order_by('date_time')[:3]
+                ).select_related('home_team', 'away_team', 'venue').annotate(
+                    status_priority=Case(
+                        When(status='live', then=Value(1)),
+                        When(status='scheduled', then=Value(2)),
+                        default=Value(3),
+                        output_field=IntegerField(),
+                    )
+                ).order_by('status_priority', 'date_time')[:3]
             )
             for m in league_matches:
                 m.is_league_recommendation = True
@@ -810,15 +843,22 @@ def user_dashboard(request):
             Match.objects.exclude(
                 home_team__sport__in=followed_sports
             ).filter(
-                status__in=['scheduled', 'live']
+               Q(status='live') | Q(status='scheduled', date_time__gte=timezone.now())
             ).select_related('home_team', 'away_team', 'venue').order_by('?')[:2]
         )
     else:
         # --- Tier 4: Trending fallback for new users ---
         recommended_matches = list(
             Match.objects.filter(
-                status__in=['scheduled', 'live']
-            ).select_related('home_team', 'away_team', 'venue').order_by('date_time')[:6]
+                Q(status='live') | Q(status='scheduled', date_time__gte=timezone.now())
+            ).select_related('home_team', 'away_team', 'venue').annotate(
+                status_priority=Case(
+                    When(status='live', then=Value(1)),
+                    When(status='scheduled', then=Value(2)),
+                    default=Value(3),
+                    output_field=IntegerField(),
+                )
+            ).order_by('status_priority', 'date_time')[:6]
         )
         for m in recommended_matches:
             m.is_trending = True
@@ -868,7 +908,9 @@ def events_list(request):
     query = request.GET.get('q', '')
     league_filter = request.GET.get('league', '')
     
-    matches = Match.objects.all().select_related('home_team', 'away_team', 'venue')
+    matches = Match.objects.filter(
+        Q(status='live') | Q(status='scheduled', date_time__gte=timezone.now())
+    ).select_related('home_team', 'away_team', 'venue')
     
     if query:
         matches = matches.filter(
@@ -880,9 +922,18 @@ def events_list(request):
     if league_filter:
         matches = matches.filter(league=league_filter)
         
-    matches = matches.order_by('date_time')
+    matches = matches.annotate(
+        status_priority=Case(
+            When(status='live', then=Value(1)),
+            When(status='scheduled', then=Value(2)),
+            default=Value(3),
+            output_field=IntegerField(),
+        )
+    ).order_by('status_priority', 'date_time')
     
-    leagues = Match.objects.values_list('league', flat=True).distinct().order_by('league')
+    leagues = Match.objects.filter(
+        Q(status='live') | Q(status='scheduled', date_time__gte=timezone.now())
+    ).values_list('league', flat=True).distinct().order_by('league')
     
     context = {
         'matches': matches,
@@ -922,7 +973,6 @@ def match_detail(request, match_id):
     return render(request, 'match_detail.html', context)
 
 
-@login_required
 def news_detail(request, news_id):
     """View details for a specific news article."""
     article = get_object_or_404(NewsArticle, id=news_id)
@@ -1178,20 +1228,48 @@ def fav_team_news(request):
         # 1. Try specific team news with flexible keywords
         team_keywords = []
         for team in favorite_teams:
-            team_keywords.append(team.name)
-            # Add short name if it's long (e.g. "Kerala Blasters FC" -> "Kerala Blasters")
-            if ' ' in team.name:
-                parts = team.name.split(' ')
-                if len(parts) > 1:
-                    team_keywords.append(' '.join(parts[:-1])) # "Kerala Blasters"
-                    team_keywords.append(parts[0]) # "Barcelona" or "Kerala"
+            name = team.name
+            team_keywords.append(name)
+            
+            # Common abbreviations and specific specific fixes
+            name_lower = name.lower()
+            if "manchester city" in name_lower:
+                team_keywords.append("Man City")
+            elif "manchester united" in name_lower:
+                team_keywords.append("Man Utd")
+            elif "arsenal" in name_lower:
+                team_keywords.append("Gunners")
+            elif "barcelona" in name_lower:
+                team_keywords.append("Barca")
+            elif "real madrid" in name_lower:
+                team_keywords.append("Los Blancos")
+            
+            # Add short names if they're likely to be specific
+            if ' ' in name:
+                parts = name.split(' ')
+                # E.g. "FC Barcelona" -> "Barcelona"
+                if parts[0].lower() in ['fc', 'rc', 'as', 'ssc', 'real', 'atletico', 'borussia']:
+                    team_keywords.append(' '.join(parts[1:]))
+                
+                # E.g. "Arsenal FC" -> "Arsenal"
+                if parts[-1].lower() in ['fc', 'united', 'city', 'town', 'rovers', 'hotspur', 'wanderers', 'albion', 'athletic']:
+                    short_name = ' '.join(parts[:-1])
+                    # Avoid generic standalone city names that multiple teams share
+                    if short_name.lower() not in ['manchester', 'real', 'atletico', 'madrid', 'milan']:
+                        team_keywords.append(short_name)
         
-        # Unique keywords, descending length to match longest first if we were doing regex, 
-        # but here we just need them for Q objects
+        # Unique keywords, minimum length 4
         team_keywords = list(set(k for k in team_keywords if len(k) > 3))
         
-        team_query = reduce(operator.or_, [Q(headline__icontains=kw) | Q(summary__icontains=kw) for kw in team_keywords])
-        news_articles = list(NewsArticle.objects.filter(team_query).order_by('-published_at'))
+        # Final filter to ensure no generic words slipped through as standalone
+        BANNED_STANDALONE = {'manchester', 'united', 'city', 'real', 'madrid', 'milan', 'atletico'}
+        team_keywords = [k for k in team_keywords if k.lower() not in BANNED_STANDALONE]
+        
+        if team_keywords:
+            team_query = reduce(operator.or_, [Q(headline__icontains=kw) | Q(summary__icontains=kw) for kw in team_keywords])
+            news_articles = list(NewsArticle.objects.filter(team_query).order_by('-published_at'))
+        else:
+            news_articles = []
         
         # 2. Fallback to League News if specific team news is sparse
         if len(news_articles) < 5:
@@ -1213,24 +1291,23 @@ def fav_team_news(request):
     }
     return render(request, 'fav_team_news.html', context)
 
-@login_required
 def latest_news(request):
     """
-    View to display all latest news articles specific to User's favorite sports.
+    Publicly accessible view for all latest news.
+    If logged in, prioritise favorite league news.
     """
-    user = request.user
-    favorite_teams = user.profile.favorite_teams.all()
-    
-    if favorite_teams.exists():
-        favorite_leagues = favorite_teams.values_list('league', flat=True).distinct()
-        news_articles = NewsArticle.objects.filter(category__in=favorite_leagues).order_by('-published_at')
-        
-        # If no news for favorites, fallback to general news
-        if not news_articles.exists():
+    if request.user.is_authenticated:
+        favorite_teams = request.user.profile.favorite_teams.all()
+        if favorite_teams.exists():
+            favorite_leagues = favorite_teams.values_list('league', flat=True).distinct()
+            news_articles = NewsArticle.objects.filter(category__in=favorite_leagues).order_by('-published_at')
+            if not news_articles.exists():
+                news_articles = NewsArticle.objects.all().order_by('-published_at')
+        else:
             news_articles = NewsArticle.objects.all().order_by('-published_at')
     else:
         news_articles = NewsArticle.objects.all().order_by('-published_at')
-        
+
     context = {
         'news_articles': news_articles
     }
@@ -1490,3 +1567,132 @@ def load_teams(request):
     from .models import Team
     teams = Team.objects.filter(league=league).order_by('name')
     return render(request, 'team_dropdown_list_options.html', {'teams': teams})
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEAM & PLAYER MANAGEMENT  (Admin + Organizer)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def is_admin_or_organizer(user):
+    return user.is_authenticated and hasattr(user, 'profile') and user.profile.role in ('admin', 'organizer')
+
+
+@login_required
+@user_passes_test(is_admin_or_organizer)
+def admin_teams(request):
+    """List all teams with search/filter."""
+    qs = Team.objects.select_related('venue').prefetch_related('players').order_by('league', 'name')
+    q = request.GET.get('q', '').strip()
+    sport = request.GET.get('sport', '').strip()
+    league = request.GET.get('league', '').strip()
+
+    if q:
+        qs = qs.filter(name__icontains=q)
+    if sport:
+        qs = qs.filter(sport=sport)
+    if league:
+        qs = qs.filter(league=league)
+
+    sports = Team.objects.values_list('sport', flat=True).distinct().order_by('sport')
+    leagues = Team.objects.values_list('league', flat=True).distinct().order_by('league')
+
+    return render(request, 'admin_dashboard/teams_list.html', {
+        'teams': qs,
+        'sports': sports,
+        'leagues': leagues,
+    })
+
+
+@login_required
+@user_passes_test(is_admin_or_organizer)
+def admin_team_edit(request, team_id):
+    """Edit a team's details and logo."""
+    team = get_object_or_404(Team, id=team_id)
+    venues = Venue.objects.all().order_by('name')
+
+    if request.method == 'POST':
+        team.name = request.POST.get('name', team.name).strip()
+        team.sport = request.POST.get('sport', team.sport).strip()
+        team.league = request.POST.get('league', team.league).strip()
+        team.description = request.POST.get('description', '').strip()
+        est = request.POST.get('established_year', '').strip()
+        team.established_year = int(est) if est.isdigit() else None
+        venue_id = request.POST.get('venue')
+        team.venue = Venue.objects.filter(id=venue_id).first() if venue_id else None
+
+        if 'logo' in request.FILES:
+            team.logo = request.FILES['logo']
+
+        team.save()
+        messages.success(request, f'✅ {team.name} updated successfully.')
+        return redirect('admin_team_edit', team_id=team.id)
+
+    return render(request, 'admin_dashboard/team_edit.html', {
+        'team': team,
+        'venues': venues,
+    })
+
+
+@login_required
+@user_passes_test(is_admin_or_organizer)
+def admin_team_players(request, team_id):
+    """View all players for a team."""
+    team = get_object_or_404(Team, id=team_id)
+    players = team.players.all().order_by('name')
+    return render(request, 'admin_dashboard/team_players.html', {
+        'team': team,
+        'players': players,
+    })
+
+
+@login_required
+@user_passes_test(is_admin_or_organizer)
+def admin_player_add(request, team_id):
+    """Add a player to a team."""
+    team = get_object_or_404(Team, id=team_id)
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        position = request.POST.get('position', '').strip()
+        nationality = request.POST.get('nationality', '').strip()
+        if name:
+            Player.objects.create(team=team, name=name, position=position, nationality=nationality)
+            messages.success(request, f'✅ Player "{name}" added to {team.name}.')
+        else:
+            messages.error(request, 'Player name is required.')
+    return redirect('admin_team_players', team_id=team.id)
+
+
+@login_required
+@user_passes_test(is_admin_or_organizer)
+def admin_player_edit(request, player_id):
+    """Edit a player's details."""
+    player = get_object_or_404(Player, id=player_id)
+    if request.method == 'POST':
+        player.name = request.POST.get('name', player.name).strip()
+        player.position = request.POST.get('position', '').strip()
+        player.nationality = request.POST.get('nationality', '').strip()
+        player.photo_url = request.POST.get('photo_url', '').strip()
+        dob = request.POST.get('dob', '').strip()
+        if dob:
+            from datetime import date
+            try:
+                player.dob = datetime.strptime(dob, '%Y-%m-%d').date()
+            except ValueError:
+                pass
+        else:
+            player.dob = None
+        player.save()
+        messages.success(request, f'✅ Player "{player.name}" updated.')
+    return redirect('admin_team_players', team_id=player.team.id)
+
+
+@login_required
+@user_passes_test(is_admin_or_organizer)
+def admin_player_delete(request, player_id):
+    """Delete a player."""
+    player = get_object_or_404(Player, id=player_id)
+    team_id = player.team.id
+    name = player.name
+    player.delete()
+    messages.success(request, f'🗑️ Player "{name}" removed.')
+    return redirect('admin_team_players', team_id=team_id)

@@ -221,6 +221,7 @@
         color: rgba(255,255,255,0.1);
         margin-bottom: 20px;
     }
+    @keyframes blink { 50% { opacity: 0.3; } }
 </style>
 {% endblock %}
 
@@ -268,7 +269,12 @@
             <div class="event-card">
                 <div class="card-header-gradient"></div>
                 <div class="event-card-body">
-                    <div class="league-tag">{{ match.league }}</div>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="league-tag mb-0">{{ match.league }}</div>
+                        {% if match.status == 'live' %}
+                            <span class="badge bg-danger text-white rounded-pill px-2 ml-2" style="font-size: 0.75rem; letter-spacing: 1px;"><i class="fas fa-circle mr-1" style="font-size: 8px; animation: blink 1s infinite;"></i> LIVE</span>
+                        {% endif %}
+                    </div>
                     
                     <div class="matchup-row">
                         <div class="team-col">
@@ -282,7 +288,11 @@
                             <span class="team-name-lg">{{ match.home_team.name }}</span>
                         </div>
                         
-                        <div class="match-vs">VS</div>
+                        {% if match.status == 'live' %}
+                            <div class="match-vs text-accent fade-in" style="font-weight: 800; font-size: 2.2rem;">{{ match.home_score }} - {{ match.away_score }}</div>
+                        {% else %}
+                            <div class="match-vs">VS</div>
+                        {% endif %}
                         
                         <div class="team-col">
                             {% if match.away_team.logo %}
@@ -305,7 +315,7 @@
                         </div>
                         <div class="detail-item">
                             <i class="far fa-clock"></i>
-                            <span>{{ match.date_time|date:"H:i" }}</span>
+                            <span>{{ match.date_time|date:"h:i A" }}</span>
                         </div>
                     </div>
                     

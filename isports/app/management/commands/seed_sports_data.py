@@ -19,9 +19,12 @@ ESPN_BASE = 'https://site.api.espn.com/apis/site/v2/sports'
 LEAGUES = [
     {'path': 'soccer/eng.1',      'name': 'English Premier League', 'sport': 'Football'},
     {'path': 'soccer/esp.1',      'name': 'Spanish La Liga',        'sport': 'Football'},
+    {'path': 'soccer/ger.1',      'name': 'German Bundesliga',      'sport': 'Football'},
+    {'path': 'soccer/ita.1',      'name': 'Italian Serie A',        'sport': 'Football'},
+    {'path': 'soccer/fra.1',      'name': 'French Ligue 1',         'sport': 'Football'},
+    {'path': 'soccer/ind.1',      'name': 'Indian Super League',    'sport': 'Football'},
     {'path': 'basketball/nba',    'name': 'NBA',                    'sport': 'Basketball'},
     {'path': 'football/nfl',      'name': 'NFL',                    'sport': 'American Football'},
-    {'path': 'soccer/ger.1',      'name': 'German Bundesliga',      'sport': 'Football'},
 ]
 
 HEADERS = {'User-Agent': 'iSports-Student-Project/1.0'}

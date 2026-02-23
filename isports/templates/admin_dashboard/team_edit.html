@@ -1,0 +1,99 @@
+{% extends 'admin_dashboard/base_admin.html' %}
+{% load static %}
+
+{% block title %}Edit Team - {{ team.name }} | iSports Admin{% endblock %}
+{% block page_title %}EDIT TEAM{% endblock %}
+
+{% block extra_css %}
+<style>
+    .current-logo {
+        width: 80px; height: 80px;
+        object-fit: contain;
+        border: 2px solid #eee;
+        border-radius: 10px;
+        padding: 5px;
+        background: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="content-box">
+            <div class="box-header">
+                <h4 class="box-title"><i class="fas fa-edit me-2 text-accent"></i>Edit: {{ team.name }}</h4>
+                <a href="{% url 'admin_teams' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i> Back to Teams</a>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- Current Logo -->
+                {% if team.logo %}
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Current Logo</label><br>
+                    <img src="{{ team.logo.url }}" class="current-logo mb-2" alt="{{ team.name }}">
+                </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Upload New Logo</label>
+                    <input type="file" name="logo" accept="image/*" class="form-control">
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Team Name</label>
+                        <input type="text" name="name" value="{{ team.name }}" class="form-control" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Sport</label>
+                        <input type="text" name="sport" value="{{ team.sport }}" class="form-control">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">League</label>
+                        <input type="text" name="league" value="{{ team.league }}" class="form-control">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Established Year</label>
+                        <input type="number" name="established_year" value="{{ team.established_year|default:'' }}" class="form-control" placeholder="e.g. 1892">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Venue</label>
+                    <select name="venue" class="form-select">
+                        <option value="">— No Venue —</option>
+                        {% for venue in venues %}
+                            <option value="{{ venue.id }}" {% if team.venue_id == venue.id %}selected{% endif %}>{{ venue.name }} ({{ venue.city }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Description</label>
+                    <textarea name="description" rows="4" class="form-control" placeholder="Club history, achievements...">{{ team.description }}</textarea>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-highlighted"><i class="fas fa-save me-2"></i>Save Changes</button>
+                    <a href="{% url 'admin_team_players' team.id %}" class="btn btn-outlined"><i class="fas fa-users me-2"></i>Manage Players</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

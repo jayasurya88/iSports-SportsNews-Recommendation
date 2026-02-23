@@ -406,7 +406,7 @@
             <div class="score-container">
                 {% if match.status == 'scheduled' %}
                     <div class="vs-badge">VS</div>
-                    <div class="match-time-hero mt-3">{{ match.date_time|date:"H:i" }}</div>
+                    <div class="match-time-hero mt-3">{{ match.date_time|date:"h:i A" }}</div>
                 {% else %}
                     <div class="match-score">
                         <span>{{ match.home_score }}</span>
@@ -601,7 +601,7 @@
                 </div>
                 <div class="info-list-item">
                     <span class="info-label">Time</span>
-                    <span class="info-value">{{ match.date_time|date:"H:i" }}</span>
+                    <span class="info-value">{{ match.date_time|date:"h:i A" }}</span>
                 </div>
                 <div class="info-list-item">
                     <span class="info-label">Status</span>

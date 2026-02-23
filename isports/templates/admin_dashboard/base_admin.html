@@ -309,18 +309,13 @@
                 <!-- Event Management Module -->
                 <li style="padding: 10px 25px 0; color: rgba(255,255,255,0.4); text-transform: uppercase; font-size: 11px;">Event Management</li>
                 <li>
-                    <a href="#">
-                        <i class="fas fa-shirt"></i> Teams
+                    <a href="{% url 'admin_teams' %}" class="{% if 'admin_team' in request.resolver_match.url_name or request.resolver_match.url_name == 'admin_teams' %}active{% endif %}">
+                        <i class="fas fa-shirt"></i> Teams &amp; Players
                     </a>
                 </li>
                 <li>
-                    <a href="#">
+                    <a href="{% url 'organizer_events_list' %}">
                         <i class="fas fa-calendar-alt"></i> Matches / Events
-                    </a>
-                </li>
-                <li>
-                    <a href="#">
-                        <i class="fas fa-map-marker-alt"></i> Venues
                     </a>
                 </li>
 

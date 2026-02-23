@@ -350,7 +350,7 @@
                                     </td>
                                     <td class="align-middle text-white-50">
                                         <div>{{ ticket.match.date_time|date:"M d, Y" }}</div>
-                                        <div class="small">{{ ticket.match.date_time|date:"H:i" }}</div>
+                                        <div class="small">{{ ticket.match.date_time|date:"h:i A" }}</div>
                                     </td>
                                     <td class="align-middle text-white-50">{{ ticket.match.venue.name }}</td>
                                     <td class="align-middle text-white-50">
@@ -368,7 +368,7 @@
                                             data-away-team="{{ ticket.match.away_team.name|escapejs }}"
                                             data-home-logo="{% if ticket.match.home_team.logo %}{{ ticket.match.home_team.logo.url }}{% endif %}"
                                             data-away-logo="{% if ticket.match.away_team.logo %}{{ ticket.match.away_team.logo.url }}{% endif %}"
-                                            data-date-time="{{ ticket.match.date_time|date:'M d, Y • H:i' }}"
+                                            data-date-time="{{ ticket.match.date_time|date:'M d, Y • h:i A' }}"
                                             data-venue="{{ ticket.match.venue.name|escapejs }}"
                                             data-seat="{{ ticket.seat_section|escapejs }}"
                                             data-quantity="{{ ticket.quantity }}"

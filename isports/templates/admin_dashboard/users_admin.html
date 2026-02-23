@@ -59,6 +59,11 @@
         border-bottom: 3px solid var(--accent-color);
         background: none;
     }
+    .status-premium {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+        border: 1px solid rgba(255, 193, 7, 0.3);
+    }
 </style>
 {% endblock %}
 
@@ -95,6 +100,11 @@
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="false">
                         Regular Users ({{ regular_users|length }})
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="premium-tab" data-bs-toggle="tab" data-bs-target="#premium" type="button" role="tab" aria-controls="premium" aria-selected="false">
+                        Premium ({{ premium_users|length }})
                     </button>
                 </li>
             </ul>
@@ -179,7 +189,12 @@
                                                 {{ user.username|make_list|first|upper }}
                                             </div>
                                             <div>
-                                                <div class="font-weight-bold" style="color: var(--primary-color);">{{ user.username }}</div>
+                                                <div class="font-weight-bold" style="color: var(--primary-color);">
+                                                    {{ user.username }}
+                                                    {% if user.profile.is_premium %}
+                                                        <span class="status-badge status-premium ms-1"><i class="fas fa-crown"></i> PRO</span>
+                                                    {% endif %}
+                                                </div>
                                                 <small class="text-muted">{{ user.get_full_name|default:"No name set" }}</small>
                                             </div>
                                         </div>
@@ -207,6 +222,59 @@
                                 {% empty %}
                                 <tr>
                                     <td colspan="5" class="text-center py-4 text-muted">No regular users found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Premium Users Tab -->
+                <div class="tab-pane fade" id="premium" role="tabpanel" aria-labelledby="premium-tab">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Joined</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in premium_users %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="user-avatar-list" style="background-color: #ffc107; color: #000;">
+                                                {{ user.username|make_list|first|upper }}
+                                            </div>
+                                            <div>
+                                                <div class="font-weight-bold" style="color: var(--primary-color);">{{ user.username }}</div>
+                                                <small class="text-muted">{{ user.get_full_name|default:"No name set" }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        <span class="status-badge status-premium"><i class="fas fa-crown"></i> PRO Member</span>
+                                    </td>
+                                    <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                                    <td class="text-end">
+                                        <div class="btn-group">
+                                            <a href="{% url 'toggle_user_status' user.id %}" class="btn btn-sm btn-outline-secondary" title="{% if user.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                                <i class="fas fa-power-off"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger ms-1" data-bs-toggle="modal" data-bs-target="#deleteModal{{ user.id }}">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">No premium users found.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
